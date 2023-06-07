@@ -20,6 +20,8 @@ import java.awt.Image;
 import java.awt.RenderingHints;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
@@ -37,19 +39,19 @@ public class MainGame extends JFrame implements ActionListener{
     Timer t = new Timer(1, this);
     int time = 0;
     int moves = 0;
-
+    MouseListener ML = new ML();
     Image pauseButton, restartButton;
+    int mx,my;
 
     MainGame() {
         this.setDefaultCloseOperation(EXIT_ON_CLOSE);
         this.setTitle("Rush Hour Ripoff");
         // this.setLayout(new BorderLayout());
         this.setResizable(false);
-
+        this.addMouseListener(ML);
 
         
-        
-
+    
         // JPanel scores = new JPanel();
         // scores.setSize(SCRW, 150);
         // scores.add(createScoring(new Dimension(SCRW/4*2, PANW/4-5), time + ""));
@@ -73,6 +75,7 @@ public class MainGame extends JFrame implements ActionListener{
         restartButton = loadImage("restart.png").getScaledInstance(65, 65, Image.SCALE_DEFAULT);
 
         this.add(DP);
+        
         this.pack();
         this.setVisible(true);
         this.setLocationRelativeTo(null);
@@ -140,10 +143,8 @@ public class MainGame extends JFrame implements ActionListener{
             g2.fillRect(0, 150, 500, 500);
             g2.setColor(Color.BLACK);
             for(int i = 0; i < 6; i++) {
-                
                 g2.drawLine(0, 150+SCRW/6*i, SCRW, 150+SCRW/6*i);
                 g2.drawLine(SCRW/6*i, 150, SCRW/6*i, 650);
-                // /g2.drawImage(pauseButton, 50, 50, null);
             }
             g2.drawLine(0, 650, SCRW, 650);
 
@@ -160,20 +161,27 @@ public class MainGame extends JFrame implements ActionListener{
     }
 
 
-    class BtnListener implements ActionListener {
+    class ML implements MouseListener {
 
         @Override
-        public void actionPerformed(ActionEvent e) {
-            if(e.getActionCommand().equals("LEVELS")) {
-
-            }
-            if(e.getActionCommand().equals("PAUSE")) {
-                
-            }
-            if(e.getActionCommand().equals("RESTART")) {
+        public void mouseClicked(MouseEvent e) {
+            mx = e.getX(); my = e.getY();
+            if(mx > 50 && mx < 150 && my > 680 && my < 780) {
                 
             }
         }
+
+        @Override
+        public void mousePressed(MouseEvent e) {}
+
+        @Override
+        public void mouseReleased(MouseEvent e) {}
+
+        @Override
+        public void mouseEntered(MouseEvent e) {}
+
+        @Override
+        public void mouseExited(MouseEvent e) {}
 
     }
      
