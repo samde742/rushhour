@@ -1,6 +1,7 @@
 package rushhour;
 
 import javax.imageio.ImageIO;
+import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
@@ -43,6 +44,7 @@ public class MainGame extends JFrame implements ActionListener{
     MouseListener ML = new ML();
     Image pauseButton, restartButton;
     int mx,my;
+    GS gamestate = GS.PLAYING;
 
     MainGame() {
         this.setDefaultCloseOperation(EXIT_ON_CLOSE);
@@ -153,12 +155,28 @@ public class MainGame extends JFrame implements ActionListener{
             g2.drawImage(pauseButton, 50, 680, null);
 
             g2.drawImage(restartButton, 350, 695, null);
+
+            if(gamestate == GS.PAUSED){
+                g2.setColor(Color.BLACK);
+                g2.fillRect(50, 100, 400,600);
+                g2.setColor(Color.WHITE);
+                g2.drawString("PAUSED", 175,150);
+                g2.drawString("Level: " + 3, 175, 250)
+                g2.drawString("Moves: " + moves, 175, 350);
+                g2.drawString("Time: " + time, 175, 450);
+            }
         }
     }
 
     @Override
     public void actionPerformed(ActionEvent e) {
         DP.repaint();
+        if(gamestate == GS.PAUSED) {
+            return;
+        }
+
+
+        time++;
     }
 
 
@@ -168,7 +186,10 @@ public class MainGame extends JFrame implements ActionListener{
         public void mouseClicked(MouseEvent e) {
             mx = e.getX(); my = e.getY();
             if(mx > 50 && mx < 150 && my > 680 && my < 780) {
-                
+
+
+
+                gamestate = GS.PAUSED;
             }
         }
 
