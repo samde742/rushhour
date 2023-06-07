@@ -1,16 +1,12 @@
 package rushhour;
 
 import javax.imageio.ImageIO;
-import javax.swing.JButton;
 import javax.swing.JFrame;
-import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.Timer;
 
-import net.miginfocom.swing.MigLayout;
 
-import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Font;
@@ -32,6 +28,11 @@ public class MainGame extends JFrame implements ActionListener{
         new MainGame();
     }
 
+    enum GS {
+        PLAYING,
+        PAUSED,
+        LEVELS
+    }
 
     final static int SCRW = 500, SCRH = 800;
     Font f = new Font("Comic Sans MS", Font.BOLD, 30);
@@ -95,24 +96,24 @@ public class MainGame extends JFrame implements ActionListener{
         return img;
     }
 
-    JPanel createSelection(Dimension size, String name) {
-        JPanel panel = new JPanel();
-        panel.setPreferredSize(size);
-        JButton btn = new JButton(name);
-        btn.addActionListener(new BtnListener());
-        btn.setActionCommand(name);
-        panel.add(btn);
-        panel.setBackground(new Color(168, 119, 50));
-        return panel;
-    }
+    // JPanel createSelection(Dimension size, String name) {
+    //     JPanel panel = new JPanel();
+    //     panel.setPreferredSize(size);
+    //     JButton btn = new JButton(name);
+    //     btn.addActionListener(new BtnListener());
+    //     btn.setActionCommand(name);
+    //     panel.add(btn);
+    //     panel.setBackground(new Color(168, 119, 50));
+    //     return panel;
+    // }
 
-    JPanel createScoring(Dimension size, String score) {
-        JPanel panel = new JPanel();
-        panel.add(new JLabel("" + score));
-        panel.setPreferredSize(size);
-        panel.setBackground(new Color(168, 119, 50));
-        return panel;
-    }
+    // JPanel createScoring(Dimension size, String score) {
+    //     JPanel panel = new JPanel();
+    //     panel.add(new JLabel("" + score));
+    //     panel.setPreferredSize(size);
+    //     panel.setBackground(new Color(168, 119, 50));
+    //     return panel;
+    // }
 
    
 
