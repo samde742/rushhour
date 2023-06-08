@@ -7,7 +7,7 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.Timer;
 
-
+import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Font;
@@ -157,11 +157,13 @@ public class MainGame extends JFrame implements ActionListener{
             g2.drawImage(restartButton, 350, 695, null);
 
             if(gamestate == GS.PAUSED){
+                g2.setStroke(new BasicStroke(10));
                 g2.setColor(Color.BLACK);
                 g2.fillRect(50, 100, 400,600);
                 g2.setColor(Color.WHITE);
-                g2.drawString("PAUSED", 175,150);
-                g2.drawString("Level: " + 3, 175, 250)
+                g2.drawRect(50, 100, 400,600);
+                g2.drawString("PAUSED", 175,140);
+                g2.drawString("Level: " + 3, 175, 250);
                 g2.drawString("Moves: " + moves, 175, 350);
                 g2.drawString("Time: " + time, 175, 450);
             }
