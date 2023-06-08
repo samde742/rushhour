@@ -42,6 +42,8 @@ public class MainGame extends JFrame implements ActionListener{
     Color yellow = new Color(248, 241, 174);
     Color darkBlue = new Color(61, 66, 107);
     Color pink = new Color(242, 196, 229);
+    Color darkYellow = new Color(201, 183, 81);
+    Color darkPink = new Color(209, 148, 192);
     DrawingPanel DP = new DrawingPanel();
     Timer t = new Timer(1, this);
     Timer counter = new Timer(1000, new Counter());
@@ -52,6 +54,7 @@ public class MainGame extends JFrame implements ActionListener{
     Image pauseButton, restartButton;
     int mx,my;
     GS gamestate = GS.PLAYING;
+    int[][] board = new int[6][6];
 
     MainGame() {
         this.setDefaultCloseOperation(EXIT_ON_CLOSE);
@@ -89,8 +92,14 @@ public class MainGame extends JFrame implements ActionListener{
         this.pack();
         this.setVisible(true);
         this.setLocationRelativeTo(null);
+        createBoard();
         t.start();
         counter.start();
+    }
+
+
+    void createBoard() {
+        File maps = new File("maps.txt");
     }
 
     static BufferedImage loadImage(String filename) {
@@ -142,32 +151,44 @@ public class MainGame extends JFrame implements ActionListener{
 
             Graphics2D g2 = (Graphics2D) g;
 			g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-            g2.setFont(f);
-            g2.setColor(pink);
 
 
-            //moves, time
-            g2.fillRoundRect(20,20,280, 110, 20, 20);
-            g2.setColor(darkBlue);
-            g2.drawString("Time: " + min + ":" + ((sec < 10) ? "0" : "") + sec, 50, 75);
-            g2.drawString("Moves: " + moves, 275, 75);
+            if(gamestate == GS.PLAYING || gamestate == GS.PAUSED) {
 
-            // Grid
-            g2.setColor(yellow);
-            g2.fillRect(0, 150, 500, 500);
-            g2.setStroke(new BasicStroke(3));
-            g2.setColor(new Color(201, 183, 81));
-            for(int i = 0; i < 6; i++) {
-                g2.drawLine(0, 150+SCRW/6*i, SCRW, 150+SCRW/6*i);
-                g2.drawLine(SCRW/6*i, 150, SCRW/6*i, 650);
+                g2.setFont(f);
+                g2.setColor(pink);
+
+                //moves, time
+                g2.fillRoundRect(20,20,280, 110, 20, 20);
+                g2.fillRoundRect(320,20,160, 110, 20, 20);
+                g2.setColor(darkPink);
+                g2.setStroke(new BasicStroke(3));
+                g2.drawRoundRect(20,20,280, 110, 20, 20);
+                g2.drawRoundRect(320,20,160, 110, 20, 20);
+
+                g2.setColor(darkBlue);
+                g2.drawString("Time:", 30, 50);
+                g2.drawString("Moves: ", 330, 50);
+                g2.setFont(title);
+                g2.drawString(min + ":" + ((sec < 10) ? "0" : "") + sec, 105, 100);
+                g2.drawString("" +moves, 385, 100);
+
+                // Grid
+                g2.setColor(yellow);
+                g2.fillRect(0, 150, 500, 500);
+                g2.setStroke(new BasicStroke(3));
+                g2.setColor(darkYellow);
+                for(int i = 0; i < 6; i++) {
+                    g2.drawLine(0, 150+SCRW/6*i, SCRW, 150+SCRW/6*i);
+                    g2.drawLine(SCRW/6*i, 150, SCRW/6*i, 650);
+                }
+                g2.drawLine(0, 650, SCRW, 650);
+
+                // pause, levels, play
+                g2.drawImage(pauseButton, 50, 680, null);
+
+                g2.drawImage(restartButton, 350, 695, null);
             }
-            g2.drawLine(0, 650, SCRW, 650);
-
-            // pause, levels, play
-            g2.drawImage(pauseButton, 50, 680, null);
-
-            g2.drawImage(restartButton, 350, 695, null);
-
             if(gamestate == GS.PAUSED){
 
                 g2.setStroke(new BasicStroke(5));
@@ -177,7 +198,7 @@ public class MainGame extends JFrame implements ActionListener{
                 g2.fillRect(50, 100, 400,100);
                 g2.setFont(title);
                 g2.setColor(darkBlue);                
-
+                g2.drawLine(50,200,450,200);
                 g2.drawString("PAUSED", 158,170);
                 g2.setFont(f);
                 g2.setColor(darkBlue);                
@@ -189,7 +210,11 @@ public class MainGame extends JFrame implements ActionListener{
                 g2.setColor(blue);
                 g2.fillRoundRect(80, 580, 180, 60, 20, 20);
                 g2.fillRoundRect(280, 580, 140, 60, 20, 20);
+                g2.setColor(darkYellow);
+                g2.drawRoundRect(80, 490, 340, 60, 20, 20);
                 g2.setColor(darkBlue);
+                g2.drawRoundRect(80, 580, 180, 60, 20, 20);
+                g2.drawRoundRect(280, 580, 140, 60, 20, 20);
                 g2.drawString("Back To Game",140,530);
                 g2.setColor(yellow);
 
