@@ -1,7 +1,6 @@
 package rushhour;
 
 import javax.imageio.ImageIO;
-import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
@@ -39,6 +38,7 @@ public class MainGame extends JFrame implements ActionListener{
     }
 
     final static int SCRW = 500, SCRH = 800;
+    final static int CELLW = SCRW/6, CELLH = SCRW/6;
     Font f = new Font("Monospaced", Font.BOLD, 30);
     Font title = new Font("Monospaced", Font.BOLD, 50);
     Color blue = new Color(167, 199, 231);
@@ -59,41 +59,21 @@ public class MainGame extends JFrame implements ActionListener{
     GS gamestate = GS.PLAYING;
     int[][] board = new int[6][6];
     int level = 0; // level starting at 0
+    final static int boardOffset = 165;
+    boolean vert = false; // false = horizontal, true = vertical
 
 
-    final static int RED = 1, GREEN = 2, BLUE = 3, ORANGE = 4, PINK = 5;
+    final static Color[] carColors = {Color.RED, Color.BLUE, Color.PINK, Color.ORANGE, Color.GREEN};
 
     MainGame() {
         this.setDefaultCloseOperation(EXIT_ON_CLOSE);
         this.setTitle("Rush Hour Ripoff");
-        // this.setLayout(new BorderLayout());
         this.setResizable(false);
         this.addMouseListener(ML);
 
-        
-    
-        // JPanel scores = new JPanel();
-        // scores.setSize(SCRW, 150);
-        // scores.add(createScoring(new Dimension(SCRW/4*2, PANW/4-5), time + ""));
-        // scores.add(createScoring(new Dimension(SCRW/4, PANW/4-5), moves + ""));
-
-        // JPanel options = new JPanel();
-        // options.setSize(SCRW, 150);
-        // options.add(createSelection(new Dimension(SCRW/4, PANW/4-5), "LEVELS"));
-        // options.add(createSelection(new Dimension(SCRW/4, PANW/4-5), "PAUSE"));
-        // options.add(createSelection(new Dimension(SCRW/4, PANW/4-5), "RESTART"));
-
-        // DP.setPreferredSize(new Dimension(PANW,PANH));
-
-        // scores.setBackground(new Color(168, 119, 50));
-        // options.setBackground(new Color(168, 119, 50));
-        
-        // this.add(scores, BorderLayout.NORTH);
-        // this.add(options, BorderLayout.SOUTH);
-
         pauseButton = loadImage("pause.png").getScaledInstance(100, 100, Image.SCALE_DEFAULT);
         restartButton = loadImage("restart.png").getScaledInstance(65, 65, Image.SCALE_DEFAULT);
-        logo = loadImage("logo.png").getScaledInstance(500, 150, Image.SCALE_DEFAULT);
+        logo = loadImage("LogoRH.png").getScaledInstance(430, 185, Image.SCALE_DEFAULT);
 
         this.add(DP);
         
@@ -114,7 +94,7 @@ public class MainGame extends JFrame implements ActionListener{
                     String line = Files.readAllLines(Paths.get("maps.txt")).get(level*board.length+i);
                     
                     int[] arr = toIntArray(line);
-                    System.out.println(Arrays.toString(arr));
+                    board[i] = arr;
                 }
             } catch (IOException e) {
             }
@@ -198,15 +178,33 @@ public class MainGame extends JFrame implements ActionListener{
 
                 // Grid
                 g2.setColor(yellow);
-                g2.fillRect(0, 150, 500, 500);
-                g2.setStroke(new BasicStroke(3));
+                // g2.fillRect(0, boardOffset, 500, 500);
+                g2.setStroke(new BasicStroke(5));
                 g2.setColor(darkYellow);
+
+
+                // BOARD
                 for(int i = 0; i < board.length; i++) {
-                    // g2.draw
-                    // g2.drawLine(0, 150+SCRW/6*i, SCRW, 150+SCRW/6*i);
-                    // g2.drawLine(SCRW/6*i, 150, SCRW/6*i, 650);
+                    for(int j = 0; j < board.length; j++) {
+                        g2.setColor(darkYellow);
+                        g2.drawRect(j*CELLW, boardOffset+i*CELLH, CELLW, CELLH);
+
+                        if(board[i][j] > 0) {
+                            int num = board[i][j];
+                            
+                            if(j > 0) {
+                                
+                            }
+                            if(j < board.length-1) 
+    
+                            
+                            
+
+                            g2.setColor(carColors[board[i][j]-1]);
+                            g2.fillRect(j*CELLW+20, boardOffset+i*CELLH+20, CELLW-40, CELLH-40);
+                        }
+                    }
                 }
-                g2.drawLine(0, 650, SCRW, 650);
 
                 // pause, levels, play
                 g2.drawImage(pauseButton, 50, 680, null);
@@ -250,6 +248,8 @@ public class MainGame extends JFrame implements ActionListener{
             }
 
             if(gamestate == GS.LEVELS){
+                g2.drawImage(logo, 37, 0, null);
+
                 g2.setColor(pink);
                 g2.drawString("Easy", 40, 190);
                 g2.drawString("Medium", 40, 390);
@@ -258,7 +258,6 @@ public class MainGame extends JFrame implements ActionListener{
                 drawBoxes(g2, 200);
                 drawBoxes(g2, 400);
                 drawBoxes(g2, 600);
-                g2.drawImage(logo, 0, 0, null);
 
             }
         }
@@ -313,16 +312,9 @@ public class MainGame extends JFrame implements ActionListener{
 
         @Override
         public void mousePressed(MouseEvent e) {}
-
-        @Override
         public void mouseReleased(MouseEvent e) {}
-
-        @Override
         public void mouseEntered(MouseEvent e) {}
-
-        @Override
         public void mouseExited(MouseEvent e) {}
-
     }
 
 
