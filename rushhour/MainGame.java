@@ -22,6 +22,9 @@ import java.awt.event.MouseListener;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.Arrays;
 
 public class MainGame extends JFrame implements ActionListener{
 
@@ -51,10 +54,14 @@ public class MainGame extends JFrame implements ActionListener{
     int min = 0;
     int moves = 0;
     MouseListener ML = new ML();
-    Image pauseButton, restartButton;
+    Image pauseButton, restartButton, logo;
     int mx,my;
     GS gamestate = GS.PLAYING;
     int[][] board = new int[6][6];
+    int level = 0; // level starting at 0
+
+
+    final static int RED = 1, GREEN = 2, BLUE = 3, ORANGE = 4, PINK = 5;
 
     MainGame() {
         this.setDefaultCloseOperation(EXIT_ON_CLOSE);
@@ -86,6 +93,7 @@ public class MainGame extends JFrame implements ActionListener{
 
         pauseButton = loadImage("pause.png").getScaledInstance(100, 100, Image.SCALE_DEFAULT);
         restartButton = loadImage("restart.png").getScaledInstance(65, 65, Image.SCALE_DEFAULT);
+        logo = loadImage("logo.png").getScaledInstance(500, 150, Image.SCALE_DEFAULT);
 
         this.add(DP);
         
@@ -99,7 +107,28 @@ public class MainGame extends JFrame implements ActionListener{
 
 
     void createBoard() {
-        File maps = new File("maps.txt");
+        for(int i = 0; i < board.length; i++) {
+            try {
+                if(Files.lines(Paths.get("maps.txt")).count() > level*board.length ) {
+                    
+                    String line = Files.readAllLines(Paths.get("maps.txt")).get(level*board.length+i);
+                    
+                    int[] arr = toIntArray(line);
+                    System.out.println(Arrays.toString(arr));
+                }
+            } catch (IOException e) {
+            }
+        }
+        
+    }
+
+    int[] toIntArray(String s) {
+        int[] arr = new int[6];
+        for(int i = 0; i < arr.length; i++) {
+            arr[i] = s.charAt(i)-'0';
+        }
+
+        return arr;
     }
 
     static BufferedImage loadImage(String filename) {
@@ -134,10 +163,6 @@ public class MainGame extends JFrame implements ActionListener{
     //     return panel;
     // }
 
-   
-
-
-
     class DrawingPanel extends JPanel {
         DrawingPanel() {
             this.setPreferredSize(new Dimension(SCRW,SCRH));
@@ -151,11 +176,9 @@ public class MainGame extends JFrame implements ActionListener{
 
             Graphics2D g2 = (Graphics2D) g;
 			g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-
+            g2.setFont(f);
 
             if(gamestate == GS.PLAYING || gamestate == GS.PAUSED) {
-
-                g2.setFont(f);
                 g2.setColor(pink);
 
                 //moves, time
@@ -178,9 +201,10 @@ public class MainGame extends JFrame implements ActionListener{
                 g2.fillRect(0, 150, 500, 500);
                 g2.setStroke(new BasicStroke(3));
                 g2.setColor(darkYellow);
-                for(int i = 0; i < 6; i++) {
-                    g2.drawLine(0, 150+SCRW/6*i, SCRW, 150+SCRW/6*i);
-                    g2.drawLine(SCRW/6*i, 150, SCRW/6*i, 650);
+                for(int i = 0; i < board.length; i++) {
+                    // g2.draw
+                    // g2.drawLine(0, 150+SCRW/6*i, SCRW, 150+SCRW/6*i);
+                    // g2.drawLine(SCRW/6*i, 150, SCRW/6*i, 650);
                 }
                 g2.drawLine(0, 650, SCRW, 650);
 
@@ -224,7 +248,25 @@ public class MainGame extends JFrame implements ActionListener{
                 g2.drawRect(50, 100, 400,600);
 
             }
+
+            if(gamestate == GS.LEVELS){
+                g2.setColor(pink);
+                g2.drawString("Easy", 40, 190);
+                g2.drawString("Medium", 40, 390);
+                g2.drawString("Hard", 40, 590);
+
+                drawBoxes(g2, 200);
+                drawBoxes(g2, 400);
+                drawBoxes(g2, 600);
+                g2.drawImage(logo, 0, 0, null);
+
+            }
         }
+    }
+
+    void drawBoxes(Graphics2D g2, int y){
+        g2.fillRoundRect(40, y, 190,150,20,20);
+        g2.fillRoundRect(270, y, 190, 150, 20, 20);
     }
 
     @Override
@@ -259,7 +301,7 @@ public class MainGame extends JFrame implements ActionListener{
 
                 // if they hit levels
                 if(mx > 80 && mx < 260 && my > 580 && my < 640) {
-                    // gamestate = GS.LEVELS;
+                    gamestate = GS.LEVELS;
                 }
 
                 // if they hit quit
