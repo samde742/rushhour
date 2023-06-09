@@ -54,12 +54,13 @@ public class MainGame extends JFrame implements ActionListener{
     int moves = 0;
     MouseListener ML = new ML();
     Image pauseButton, restartButton, logo;
-    int mx,my;
+    int mx1,my1, mx2, my2;
     GS gamestate = GS.PLAYING;
     int[][] board = new int[6][6];
     int level = 0; // level starting at 0
     final static int boardOffset = 165;
     boolean vert = false;
+    int ix, iy; // selected car
 
 
     final static Color[] carColors = {Color.RED, Color.BLUE, Color.PINK, Color.ORANGE, Color.GREEN};
@@ -330,11 +331,11 @@ public class MainGame extends JFrame implements ActionListener{
 
         @Override
         public void mouseClicked(MouseEvent e) {
-            mx = e.getX(); my = e.getY();
+            mx1 = e.getX(); my1 = e.getY();
 
-
+            
             // if they hit the pause button
-            if(mx > 50 && mx < 150 && my > 680 && my < 780) {
+            if(mx1 > 50 && mx1 < 150 && my1 > 680 && my1 < 780) {
                 gamestate = GS.PAUSED;
             }
             
@@ -342,25 +343,47 @@ public class MainGame extends JFrame implements ActionListener{
             if(gamestate == GS.PAUSED) {
                 
                 // if they resume
-                if(mx > 80 && mx < 420 && my > 490 && my < 580) {
+                if(mx1 > 80 && mx1 < 420 && my1 > 490 && my1 < 580) {
                     gamestate = GS.PLAYING;
                 }
 
                 // if they hit levels
-                if(mx > 80 && mx < 260 && my > 580 && my < 670) {
+                if(mx1 > 80 && mx1 < 260 && my1 > 580 && my1 < 670) {
                     gamestate = GS.LEVELS;
                 }
 
                 // if they hit quit
-                if(mx > 280 && mx < 420 && my > 580 && my < 640) {
+                if(mx1 > 280 && mx1 < 420 && my1 > 580 && my1 < 640) {
                     // QUIT CODE
                 }
             }
+            
+            if(mx1 > 0 && mx1 < SCRW && my1 > boardOffset && my1 < SCRW+boardOffset) {
+                ix = mx/CELLW;
+                iy = (my-boardOffset)/CELLH;
+                System.out.printf("%d %d", ix, iy);
+            }
+
         }
 
         @Override
         public void mousePressed(MouseEvent e) {}
-        public void mouseReleased(MouseEvent e) {}
+        @Override
+        public void mouseReleased(MouseEvent e) {
+            mx2 = e.getX(); my2 = e.getY();
+            int xdiff = math.abs(mx1-mx2);
+            int ydiff = math.abs(my1-my2);
+
+
+            if(xdiff > ydiff) {
+                int adj = checkAdj(ix, iy);
+                if(!vert) {
+                    
+                }
+            }
+
+
+        }
         public void mouseEntered(MouseEvent e) {}
         public void mouseExited(MouseEvent e) {}
     }
