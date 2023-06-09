@@ -13,6 +13,7 @@ import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Image;
+import java.awt.Point;
 import java.awt.RenderingHints;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -294,27 +295,29 @@ public class MainGame extends JFrame implements ActionListener{
                 
                 g2.drawImage(logo, 58, 0, null);
 
-                g2.setColor(pink);
+                g2.setColor(darkBlue);
                 g2.drawString("Easy", 40, 190);
                 g2.drawString("Medium", 40, 390);
                 g2.drawString("Hard", 40, 590);
 
-                drawBoxes(g2, 200);
-                drawBoxes(g2, 400);
-                drawBoxes(g2, 600);
-
+                drawBoxes(g2, 200, 1);
+                drawBoxes(g2, 400, 3);
+                drawBoxes(g2, 600, 5);
             }
         }
     }
 
-    void drawBoxes(Graphics2D g2, int y){
+    void drawBoxes(Graphics2D g2, int y, int lvl){
         g2.setColor(pink);
         g2.fillRoundRect(40, y, 190,150,20,20);
         g2.fillRoundRect(270, y, 190, 150, 20, 20);
         g2.setColor(yellow);
         g2.fillRoundRect(40,y+100, 190,50,20,20);
-        g2.fillRoundRect(270,y+100, 190,0,20,20);
-
+        g2.fillRoundRect(270,y+100, 190,50,20,20);
+        g2.setColor(blue);
+        g2.drawString("Level " + lvl, 70, y+135);
+        lvl++;
+        g2.drawString("Level " + lvl, 300, y+135);
     }
 
     @Override
@@ -323,14 +326,12 @@ public class MainGame extends JFrame implements ActionListener{
         if(gamestate == GS.PAUSED) {
             return;
         }
-
     }
-
 
     class ML implements MouseListener {
 
         @Override
-        public void mouseClicked(MouseEvent e) {
+        public void mousePressed(MouseEvent e) {
             mx1 = e.getX(); my1 = e.getY();
 
             
@@ -359,33 +360,42 @@ public class MainGame extends JFrame implements ActionListener{
             }
             
             if(mx1 > 0 && mx1 < SCRW && my1 > boardOffset && my1 < SCRW+boardOffset) {
-                ix = mx/CELLW;
-                iy = (my-boardOffset)/CELLH;
+                ix = mx1/CELLW;
+                iy = (my1-boardOffset)/CELLH;
                 System.out.printf("%d %d", ix, iy);
             }
-
         }
-
-        @Override
-        public void mousePressed(MouseEvent e) {}
         @Override
         public void mouseReleased(MouseEvent e) {
             mx2 = e.getX(); my2 = e.getY();
-            int xdiff = math.abs(mx1-mx2);
-            int ydiff = math.abs(my1-my2);
+            int xdiff = Math.abs(mx1-mx2);
+            int ydiff = Math.abs(my1-my2);
+            checkAdj(ix, iy);
+            int sub = 0;
+            Point head = new Point(0, 0);
 
 
-            if(xdiff > ydiff) {
-                int adj = checkAdj(ix, iy);
-                if(!vert) {
-                    
+            if(xdiff > ydiff && !vert) {
+                while(true) {
+                    if(mx1-mx2 > 0) sub--;
+                    else sub++;
+                    if(iy > 0 && iy < board.length-1 && board[ix][iy] != board[ix][iy+sub]) {
+                        head.x= ix; head.y = iy+(sub*-1);
+                        break;
+                    }
                 }
+                sub = 0;
             }
+            System.out.printf("%d %d", head.x, head.y);
 
 
         }
+
+        @Override
         public void mouseEntered(MouseEvent e) {}
         public void mouseExited(MouseEvent e) {}
+        public void mouseClicked(MouseEvent e) {}
+
     }
 
 
