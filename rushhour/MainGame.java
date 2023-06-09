@@ -23,7 +23,6 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.Arrays;
 
 public class MainGame extends JFrame implements ActionListener{
 
@@ -60,7 +59,7 @@ public class MainGame extends JFrame implements ActionListener{
     int[][] board = new int[6][6];
     int level = 0; // level starting at 0
     final static int boardOffset = 165;
-    boolean vert = false; // false = horizontal, true = vertical
+    boolean vert = false;
 
 
     final static Color[] carColors = {Color.RED, Color.BLUE, Color.PINK, Color.ORANGE, Color.GREEN};
@@ -73,7 +72,7 @@ public class MainGame extends JFrame implements ActionListener{
 
         pauseButton = loadImage("pause.png").getScaledInstance(100, 100, Image.SCALE_DEFAULT);
         restartButton = loadImage("restart.png").getScaledInstance(65, 65, Image.SCALE_DEFAULT);
-        logo = loadImage("LogoRH.png").getScaledInstance(430, 185, Image.SCALE_DEFAULT);
+        logo = loadImage("RushHourLogo.png").getScaledInstance(400, 180, Image.SCALE_DEFAULT);
 
         this.add(DP);
         
@@ -143,10 +142,34 @@ public class MainGame extends JFrame implements ActionListener{
     //     return panel;
     // }
 
+    int checkAdj(int a, int b) {
+        int num = 0;
+        if(a > 0 && board[a][b] == board[a-1][b]) {
+            num++;
+            vert = true;
+        }
+        if(a < board.length-1 && board[a][b] == board[a+1][b]) {
+            num--;
+            vert = true;
+        }
+
+        if(b > 0 && board[a][b] == board[a][b-1]) {
+            num++;
+            vert = false;
+        }
+        if(b < board.length-1 && board[a][b] == board[a][b+1]) {
+            num--;
+            vert = false;
+
+        }
+        
+        return num;
+    }
+
     class DrawingPanel extends JPanel {
         DrawingPanel() {
             this.setPreferredSize(new Dimension(SCRW,SCRH));
-            this.setBackground(blue);
+            this.setBackground(new Color(179, 199, 226));
 
         }
 
@@ -190,18 +213,37 @@ public class MainGame extends JFrame implements ActionListener{
                         g2.drawRect(j*CELLW, boardOffset+i*CELLH, CELLW, CELLH);
 
                         if(board[i][j] > 0) {
-                            int num = board[i][j];
+                            int num = checkAdj(i, j);
+                            int x1= 0,y1= 0,x2 = 0,y2 = 0;
                             
-                            if(j > 0) {
-                                
+                            
+                            if(vert) {
+                                x1 = 10;
+                                y1 = -3;
+                                x2 = -20;
+                                y2 = 3;
+
+                                if(num == 1) y2 = -10;
+                                if(num == -1) {
+                                    y1 = 10;
+                                    y2 = -10;
+                                }
                             }
-                            if(j < board.length-1) 
-    
-                            
-                            
+                            else {
+                                x1 = -3;
+                                y1 = 10;
+                                x2 = 3;
+                                y2 = -20;
+
+                                if(num == 1) x2 = -10;
+                                if(num == -1) {
+                                    x1 = 10;
+                                    x2 = -10;
+                                }
+                            }
 
                             g2.setColor(carColors[board[i][j]-1]);
-                            g2.fillRect(j*CELLW+20, boardOffset+i*CELLH+20, CELLW-40, CELLH-40);
+                            g2.fillRect(j*CELLW+x1, boardOffset+i*CELLH+y1, CELLW+x2, CELLH+y2);                                
                         }
                     }
                 }
@@ -248,7 +290,8 @@ public class MainGame extends JFrame implements ActionListener{
             }
 
             if(gamestate == GS.LEVELS){
-                g2.drawImage(logo, 37, 0, null);
+                
+                g2.drawImage(logo, 58, 0, null);
 
                 g2.setColor(pink);
                 g2.drawString("Easy", 40, 190);
@@ -264,8 +307,13 @@ public class MainGame extends JFrame implements ActionListener{
     }
 
     void drawBoxes(Graphics2D g2, int y){
+        g2.setColor(pink);
         g2.fillRoundRect(40, y, 190,150,20,20);
         g2.fillRoundRect(270, y, 190, 150, 20, 20);
+        g2.setColor(yellow);
+        g2.fillRoundRect(40,y+100, 190,50,20,20);
+        g2.fillRoundRect(270,y+100, 190,0,20,20);
+
     }
 
     @Override
@@ -299,7 +347,7 @@ public class MainGame extends JFrame implements ActionListener{
                 }
 
                 // if they hit levels
-                if(mx > 80 && mx < 260 && my > 580 && my < 640) {
+                if(mx > 80 && mx < 260 && my > 580 && my < 670) {
                     gamestate = GS.LEVELS;
                 }
 
