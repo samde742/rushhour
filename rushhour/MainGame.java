@@ -24,6 +24,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 
 public class MainGame extends JFrame implements ActionListener{
 
@@ -62,6 +63,7 @@ public class MainGame extends JFrame implements ActionListener{
     final static int boardOffset = 165;
     boolean vert = false;
     int ix, iy; // selected car
+
 
 
     final static Color[] carColors = {Color.RED, Color.BLUE, Color.PINK, Color.ORANGE, Color.GREEN};
@@ -328,6 +330,29 @@ public class MainGame extends JFrame implements ActionListener{
         }
     }
 
+    ArrayList findSegs() {
+        int sub = 0;
+        ArrayList<Point> seg = new ArrayList<>();
+        while(true) {
+            if(mx1-mx2 > 0) sub--;
+            else sub++;
+            // only goes 1 way make it go through both ways somehow
+
+            if(iy+sub < 0 || iy+sub > board.length-1) break;
+
+            if(board[ix][iy] != board[ix][iy+sub]) {
+                seg.add(0, new Point(ix,iy+(sub-1*-1)));
+            }
+            else {
+                seg.add(new Point(ix, iy+sub));
+                System.out.printf("%d %d ", ix, iy+sub);
+
+            }
+
+        }
+        return seg;
+    }
+
     class ML implements MouseListener {
 
         @Override
@@ -360,9 +385,9 @@ public class MainGame extends JFrame implements ActionListener{
             }
             
             if(mx1 > 0 && mx1 < SCRW && my1 > boardOffset && my1 < SCRW+boardOffset) {
-                ix = mx1/CELLW;
-                iy = (my1-boardOffset)/CELLH;
-                System.out.printf("%d %d", ix, iy);
+                ix = (my1-boardOffset)/CELLW;
+                iy = mx1/CELLH;
+                System.out.printf("%d %d ", ix, iy);
             }
         }
         @Override
@@ -371,22 +396,24 @@ public class MainGame extends JFrame implements ActionListener{
             int xdiff = Math.abs(mx1-mx2);
             int ydiff = Math.abs(my1-my2);
             checkAdj(ix, iy);
-            int sub = 0;
-            Point head = new Point(0, 0);
+            ArrayList<Point> segs = new ArrayList<>();
+            int dir = 0;
 
 
             if(xdiff > ydiff && !vert) {
+                segs = findSegs();
+                if(mx1-mx2 > 0) dir = -1;
+                else dir = 1; 
                 while(true) {
-                    if(mx1-mx2 > 0) sub--;
-                    else sub++;
-                    if(iy > 0 && iy < board.length-1 && board[ix][iy] != board[ix][iy+sub]) {
-                        head.x= ix; head.y = iy+(sub*-1);
-                        break;
+                    if(segs.size() == 0 || segs.get(0).y+dir < 0 || segs.get(0).y+dir > board.length-1 ) break;
+
+                    for(int i = 0; i < segs.size(); i++) {
+                        Point p = segs.get(i);
+                        p.y+=dir;
                     }
                 }
-                sub = 0;
             }
-            System.out.printf("%d %d", head.x, head.y);
+            System.out.printf("hello");
 
 
         }
