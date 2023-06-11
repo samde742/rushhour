@@ -356,7 +356,7 @@ public class MainGame extends JFrame implements ActionListener{
 
     int[] findSegs2() {
         int[] arr = new int[6];
-
+        // use IX dont do this sillt
 
         if(!vert) {
             arr = board[ix];
@@ -407,26 +407,26 @@ public class MainGame extends JFrame implements ActionListener{
             mx2 = e.getX(); my2 = e.getY();
             int ix2 = (my2-boardOffset-30)/CELLW;
             int iy2 = mx2/(CELLH);
-            System.out.printf("%d %d", ix2, iy2);
+            System.out.printf("%d %d ", ix2, iy2);
             if(board[ix][iy] ==0) return;
-            int xdiff = Math.abs(mx1-mx2);
-            int ydiff = Math.abs(my1-my2);
             checkAdj(ix, iy);
-            ArrayList<Point> segs = new ArrayList<>();
             int dir = 0;
             int selectedCar = board[ix][iy];
 
             int[] line = findSegs2();
-
+            line[1] = 1;
             if(mx1-mx2 > 0) dir = -1;
             else dir = 1;
-            System.out.println(dir);
-            if(!vert) {
+            System.out.println(selectedCar);
+            if(vert) {
                 for(int i = 0; i < line.length; i++) {
                     int temp = (dir == 1) ? Math.abs(i-5) : i;
                     System.out.println(temp);
-                    if(line[temp] == selectedCar && temp > 0 && temp < board.length) {
-                        while(temp > iy2 && line[temp+dir] != line[temp]) {
+                    if(line[temp] == selectedCar) {
+                        while(true) {
+                            if(temp+dir < 0 || temp+dir >= board.length || line[temp+dir] == selectedCar || line[temp+dir] != 0 || temp+dir < iy2 && dir == -1 || temp+dir > iy2 && dir == 1) break;
+        
+                            System.out.print(temp+dir+ " ");
                             line[temp+dir] = line[temp];
                             line[temp] = 0;
                             temp+=dir;
