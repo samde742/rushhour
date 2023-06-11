@@ -25,6 +25,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Arrays;
 
 public class MainGame extends JFrame implements ActionListener{
 
@@ -330,7 +331,7 @@ public class MainGame extends JFrame implements ActionListener{
         }
     }
 
-    ArrayList findSegs() {
+    ArrayList<Point> findSegs() {
         int sub = 0;
         ArrayList<Point> seg = new ArrayList<>();
         while(true) {
@@ -351,6 +352,17 @@ public class MainGame extends JFrame implements ActionListener{
 
         }
         return seg;
+    }
+
+    int[] findSegs2() {
+        int[] arr = new int[6];
+
+
+        if(!vert) {
+            arr = board[ix];
+        }
+
+        return arr;
     }
 
     class ML implements MouseListener {
@@ -385,35 +397,60 @@ public class MainGame extends JFrame implements ActionListener{
             }
             
             if(mx1 > 0 && mx1 < SCRW && my1 > boardOffset && my1 < SCRW+boardOffset) {
-                ix = (my1-boardOffset)/CELLW;
-                iy = mx1/CELLH;
+                ix = (my1-boardOffset-30)/CELLW;
+                iy = mx1/(CELLH);
                 System.out.printf("%d %d ", ix, iy);
             }
         }
         @Override
         public void mouseReleased(MouseEvent e) {
             mx2 = e.getX(); my2 = e.getY();
+            int ix2 = (my2-boardOffset-30)/CELLW;
+            int iy2 = mx2/(CELLH);
+            System.out.printf("%d %d", ix2, iy2);
+            if(board[ix][iy] ==0) return;
             int xdiff = Math.abs(mx1-mx2);
             int ydiff = Math.abs(my1-my2);
             checkAdj(ix, iy);
             ArrayList<Point> segs = new ArrayList<>();
             int dir = 0;
+            int selectedCar = board[ix][iy];
 
+            int[] line = findSegs2();
 
-            if(xdiff > ydiff && !vert) {
-                segs = findSegs();
-                if(mx1-mx2 > 0) dir = -1;
-                else dir = 1; 
-                while(true) {
-                    if(segs.size() == 0 || segs.get(0).y+dir < 0 || segs.get(0).y+dir > board.length-1 ) break;
-
-                    for(int i = 0; i < segs.size(); i++) {
-                        Point p = segs.get(i);
-                        p.y+=dir;
+            if(mx1-mx2 > 0) dir = -1;
+            else dir = 1;
+            System.out.println(dir);
+            if(!vert) {
+                for(int i = 0; i < line.length; i++) {
+                    int temp = (dir == 1) ? Math.abs(i-5) : i;
+                    System.out.println(temp);
+                    if(line[temp] == selectedCar && temp > 0 && temp < board.length) {
+                        while(temp > iy2 && line[temp+dir] != line[temp]) {
+                            line[temp+dir] = line[temp];
+                            line[temp] = 0;
+                            temp+=dir;
+                        }
                     }
                 }
             }
-            System.out.printf("hello");
+
+
+            // if(xdiff > ydiff && !vert) {
+            //     segs = findSegs();
+            //     if(mx1-mx2 > 0) dir = -1;
+            //     else dir = 1; 
+            //     while(true) {
+            //         if(segs.size() == 0 || segs.get(0).y+dir < 0 || segs.get(0).y+dir > board.length-1 ) break;
+
+            //         for(int i = 0; i < segs.size(); i++) {
+            //             Point p = segs.get(i);
+            //             p.y+=dir;
+            //         }
+            //     }
+            // }
+
+            System.out.printf(Arrays.toString(line));
 
 
         }
