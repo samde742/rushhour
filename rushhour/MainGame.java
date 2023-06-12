@@ -63,7 +63,7 @@ public class MainGame extends JFrame implements ActionListener{
     GS gamestate = GS.PLAYING;
     int[][] board = new int[6][6];
     boolean[][] stars = new boolean[6][3];
-    int level = 4; // level starting at 0
+    int level = 0; // level starting at 0
     final static int boardOffset = 165;
     boolean vert = false;
     int ix, iy; // selected car
@@ -82,7 +82,7 @@ public class MainGame extends JFrame implements ActionListener{
         restartButton = loadImage("restart.png").getScaledInstance(65, 65, Image.SCALE_DEFAULT);
         logo = loadImage("RushHourLogo.png").getScaledInstance(400, 180, Image.SCALE_DEFAULT);
         eStar = loadImage("emptyStar.png").getScaledInstance(50, 50, Image.SCALE_DEFAULT);
-        star = loadImage("emptyStar.png").getScaledInstance(50, 50, Image.SCALE_DEFAULT);
+        star = loadImage("star.png").getScaledInstance(50, 50, Image.SCALE_DEFAULT);
 
 
         this.add(DP);
@@ -316,12 +316,27 @@ public class MainGame extends JFrame implements ActionListener{
 
             if(gamestate == GS.WIN){
                 g2.setColor(pink);
-                g2.drawRect(30,30, SCRW - 30, SCRH - 30);
-                g2.drawString("Level" + (level+=1) + " Complete!", 100,50);
+                g2.drawRect(30,30, SCRW-30, SCRH - 30);
+                g2.drawString("Level " + (level+1) + " Complete!", 100,50);
                 //draw stars
+                drawStars(g2, level+1, 100, 150);
                 
-                g2.drawString("Moves made: " + moves, 100, 200);
-                // g2.drawString("Time taken: " )
+                g2.drawString("Moves made: " + moves, 100, 300);
+                g2.drawString("Time taken: " + min + ":" + sec, 100, 350);
+                
+                g2.setColor(yellow);
+                g2.fillRoundRect(100, 400, 340, 60, 20, 20);
+                g2.setColor(darkBlue);
+                g2.drawString("Levels",100,440);
+                g2.setColor(blue);
+                g2.fillRoundRect(100, 580, 180, 60, 20, 20);
+                g2.fillRoundRect(280, 580, 140, 60, 20, 20);
+                g2.setColor(darkYellow);
+                g2.drawRoundRect(80, 490, 340, 60, 20, 20);
+                g2.setColor(darkBlue);
+                g2.drawRoundRect(80, 580, 180, 60, 20, 20);
+                g2.drawRoundRect(280, 580, 140, 60, 20, 20);
+                
             }
         }
     }
@@ -343,6 +358,8 @@ public class MainGame extends JFrame implements ActionListener{
      * @param lvl level number
      */
     void drawBoxes(Graphics2D g2, int y, int lvl){
+
+        //
         g2.setColor(pink);
         g2.fillRoundRect(40, y, 190,150,20,20);
         g2.fillRoundRect(270, y, 190, 150, 20, 20);
@@ -351,20 +368,40 @@ public class MainGame extends JFrame implements ActionListener{
         g2.fillRoundRect(270,y+100, 190,50,20,20);
         g2.setColor(blue);
         g2.drawString("Level " + lvl, 70, y+135);
+        drawStars(g2, lvl, 50, y);
         lvl++;
+        drawStars(g2, lvl, 280, y);
         g2.drawString("Level " + lvl, 300, y+135);
-        boolean[] lvlStars = stars[level];
-        for(int i = 0; i < 3; i++) {
-            g2.drawImage(((lvlStars[i]) ? eStar : star), 40+(i*30), y+20, null);
-        }
     }
+
+    /**
+     * draws stars for scoring
+     * @param g2 the graphics canvas
+     * @param lvl the current level to get stars
+     * @param x starting x coord for the stars
+     * @param y the starting y coord for the stars
+     */
+    void drawStars(Graphics2D g2, int lvl, int x, int y) {
+
+        // get stars for level
+        boolean[] lvlStars = stars[lvl-1];
+
+        // draw each star
+        for(int i = 0; i < 3; i++) {
+            g2.drawImage((lvlStars[i]) ? star : eStar, x+(i*60), y+ ((i == 1) ? 20 : 35), null);
+        }
+    } 
 
     @Override
     public void actionPerformed(ActionEvent e) {
         DP.repaint();
+
+        // if they are paused dont continue
         if(gamestate == GS.PAUSED) {
             return;
         }
+
+        // if red is in winning position
         if(redWon()) {
             gamestate = GS.WIN;
         }
