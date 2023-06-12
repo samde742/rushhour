@@ -63,14 +63,14 @@ public class MainGame extends JFrame implements ActionListener{
     GS gamestate = GS.PLAYING;
     int[][] board = new int[6][6];
     boolean[][] stars = new boolean[6][3];
-    int level = 0; // level starting at 0
+    int level = 4; // level starting at 0
     final static int boardOffset = 165;
     boolean vert = false;
     int ix, iy; // selected car
 
 
 
-    final static Color[] carColors = {Color.RED, Color.BLUE, Color.PINK, Color.ORANGE, Color.GREEN, Color.CYAN, Color.MAGENTA};
+    final static Color[] carColors = {Color.RED, Color.BLUE, Color.PINK, Color.ORANGE, Color.GREEN, Color.CYAN, Color.MAGENTA, Color.BLACK};
 
     MainGame() {
         this.setDefaultCloseOperation(EXIT_ON_CLOSE);
@@ -95,32 +95,11 @@ public class MainGame extends JFrame implements ActionListener{
         counter.start();
     }
 
-
-    void createBoard() {
-        for(int i = 0; i < board.length; i++) {
-            try {
-                if(Files.lines(Paths.get("maps.txt")).count() > level*board.length ) {
-                    
-                    String line = Files.readAllLines(Paths.get("maps.txt")).get(level*board.length+i);
-                    
-                    int[] arr = toIntArray(line);
-                    board[i] = arr;
-                }
-            } catch (IOException e) {
-            }
-        }
-        
-    }
-
-    int[] toIntArray(String s) {
-        int[] arr = new int[6];
-        for(int i = 0; i < arr.length; i++) {
-            arr[i] = s.charAt(i)-'0';
-        }
-
-        return arr;
-    }
-
+    /**
+     * loads image to draw
+     * @param filename name of file(image)
+     * @return image
+     */
     static BufferedImage loadImage(String filename) {
         BufferedImage img = null;
         try {
@@ -134,48 +113,166 @@ public class MainGame extends JFrame implements ActionListener{
         return img;
     }
 
-    // JPanel createSelection(Dimension size, String name) {
-    //     JPanel panel = new JPanel();
-    //     panel.setPreferredSize(size);
-    //     JButton btn = new JButton(name);
-    //     btn.addActionListener(new BtnListener());
-    //     btn.setActionCommand(name);
-    //     panel.add(btn);
-    //     panel.setBackground(new Color(168, 119, 50));
-    //     return panel;
-    // }
+    /**
+     * creates board from txt file full of maps
+     */
+    void createBoard() {
 
-    // JPanel createScoring(Dimension size, String score) {
-    //     JPanel panel = new JPanel();
-    //     panel.add(new JLabel("" + score));
-    //     panel.setPreferredSize(size);
-    //     panel.setBackground(new Color(168, 119, 50));
-    //     return panel;
-    // }
+        // loop through lines in file
+        for(int i = 0; i < board.length; i++) {
+            try {
+                // if there are more lines than the level times board length --> ensure that level exists (eg level 4, lines must be greater than 24)
+                if(Files.lines(Paths.get("maps.txt")).count() > level*board.length) {
+                    
+                    // get line from file(piece of board array)
+                    String line = Files.readAllLines(Paths.get("maps.txt")).get(level*board.length+i);
+                    
+                    // change from chars to ints
+                    int[] arr = toIntArray(line);
 
+                    // add to array
+                    board[i] = arr;
+                }
+            } catch (IOException e) {
+                System.err.println("IO EXCEPTION");
+            }
+        }
+        
+    }
+
+    /**
+     * changes characters in string to array
+     * @param s string for converting
+     * @return return array of numbers
+     */
+    int[] toIntArray(String s) {
+        int[] arr = new int[6];
+        // loop through new array
+        for(int i = 0; i < arr.length; i++) {
+            //change char number to int number, must subtract '0'(48) from char
+            arr[i] = s.charAt(i)-'0';
+        }
+        return arr;
+    }
+
+    /**
+     * checks adjacent blocks --> used for drawing carsa & finding ends
+     * @param a first array coordinate --> which array
+     * @param b second array coordinate --> which number
+     * @return return number representing adjacent blocks 0 = 2 blocks, 1 = block on left, -1 = block on right
+     */
     int checkAdj(int a, int b) {
-        int num = 0;
+        int num = 0; // adjacent blocks
+
+        // if block is above selected
         if(a > 0 && board[a][b] == board[a-1][b]) {
             num++;
             vert = true;
         }
+
+        // if block is bellow selected
         if(a < board.length-1 && board[a][b] == board[a+1][b]) {
             num--;
             vert = true;
         }
 
+        // if block is to the left of selected
         if(b > 0 && board[a][b] == board[a][b-1]) {
             num++;
             vert = false;
         }
+
+        // if block is right of selected
         if(b < board.length-1 && board[a][b] == board[a][b+1]) {
             num--;
             vert = false;
-
         }
         
+        //0,1,-1
         return num;
     }
+
+    /** 
+     * gets the line to move the car
+     * @return returns line car is in
+     */
+    int[] findLine() {
+        int[] arr = new int[6];
+        // use IX dont do this sillt
+
+        // if the car is horizontal
+        if(!vert) {
+            // array is the array from the board --> no need to update separately
+            arr = board[ix];
+        }
+
+        // it is vertical
+        else {
+            // create an array for vertical
+            for(int i = 0; i < board.length; i++) {
+                arr[i] = board[i][iy];
+            }
+        }
+
+        return arr;
+    }
+
+    /**
+     * checks if red is in the winning position
+     * @return returns boolean value
+     */
+    boolean redWon() {
+        boolean b = false;
+
+        // red block(1) in ending position
+        if(board[2][5] == 1) b = true;
+        return b;
+    }
+
+    /**
+     * draws level boxes
+     * @param g2 graphics plane
+     * @param y y value of button
+     * @param lvl level number
+     */
+    void drawBoxes(Graphics2D g2, int y, int lvl){
+
+        // background pink square
+        g2.setColor(pink);
+        g2.fillRoundRect(40, y, 190,150,20,20);
+        g2.fillRoundRect(270, y, 190, 150, 20, 20);
+
+        // text background yellow square
+        g2.setColor(yellow);
+        g2.fillRoundRect(40,y+100, 190,50,20,20);
+        g2.fillRoundRect(270,y+100, 190,50,20,20);
+
+        // words, stars
+        g2.setColor(blue);
+        g2.drawString("Level " + lvl, 70, y+135);
+        drawStars(g2, lvl, 50, y);
+        lvl++;
+        drawStars(g2, lvl, 280, y);
+        g2.drawString("Level " + lvl, 300, y+135);
+    }
+
+    /**
+     * draws stars for scoring
+     * @param g2 the graphics canvas
+     * @param lvl the current level to get stars
+     * @param x starting x coord for the stars
+     * @param y the starting y coord for the stars
+     */
+    void drawStars(Graphics2D g2, int lvl, int x, int y) {
+
+        // get stars for level
+        boolean[] lvlStars = stars[lvl-1];
+
+        // draw each star
+        for(int i = 0; i < 3; i++) {
+            g2.drawImage((lvlStars[i]) ? star : eStar, x+(i*60), y+ ((i == 1) ? 20 : 35), null);
+        }
+    } 
 
     class DrawingPanel extends JPanel {
         DrawingPanel() {
@@ -192,6 +289,7 @@ public class MainGame extends JFrame implements ActionListener{
 			g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
             g2.setFont(f);
 
+            // if they are playing or paused, draw screen
             if(gamestate == GS.PLAYING || gamestate == GS.PAUSED) {
                 g2.setColor(pink);
 
@@ -210,49 +308,64 @@ public class MainGame extends JFrame implements ActionListener{
                 g2.drawString(min + ":" + ((sec < 10) ? "0" : "") + sec, 105, 100);
                 g2.drawString("" +moves, 385, 100);
 
-                // Grid
+                // BOARD
                 g2.setColor(yellow);
                 g2.fillRect(0, boardOffset, 500, 500);
                 g2.setStroke(new BasicStroke(5));
                 g2.setColor(darkYellow);
 
-
-                // BOARD
                 for(int i = 0; i < board.length; i++) {
                     for(int j = 0; j < board.length; j++) {
                         g2.setColor(darkYellow);
                         g2.drawRect(j*CELLW, boardOffset+i*CELLH, CELLW, CELLH);
 
+                        // drawing cars --> if is not empty
                         if(board[i][j] > 0) {
+                            // check adjacent blocks
                             int num = checkAdj(i, j);
+
+                            // create offsetting values
                             int x1= 0,y1= 0,x2 = 0,y2 = 0;
                             
-                            
+                            // if vertical
                             if(vert) {
+
+                                // change to vertical offsets for centering(both sides have blocks)
                                 x1 = 10;
                                 y1 = -3;
                                 x2 = -20;
                                 y2 = 3;
 
+                                // if one adjacent to left
                                 if(num == 1) y2 = -10;
+
+                                // if adjacent to right
                                 if(num == -1) {
                                     y1 = 10;
                                     y2 = -10;
                                 }
                             }
-                            else {
-                                x1 = -3;
-                                y1 = 10;
-                                x2 = 3;
-                                y2 = -20;
 
+                            // otherwise it is horozontal
+                            else {
+
+                                // if both sides have blocks
+                                x1 = -3; // spacing between line and car
+                                y1 = 10;// spacing from top
+                                x2 = 3; // spacing between line and car
+                                y2 = -20; // spacing from bottom
+
+                                // one to left
                                 if(num == 1) x2 = -10;
+
+                                // one to right
                                 if(num == -1) {
                                     x1 = 10;
                                     x2 = -10;
                                 }
                             }
 
+                            // draw car with corrosponding color
                             g2.setColor(carColors[board[i][j]-1]);
                             g2.fillRect(j*CELLW+x1, boardOffset+i*CELLH+y1, CELLW+x2, CELLH+y2);                                
                         }
@@ -341,56 +454,9 @@ public class MainGame extends JFrame implements ActionListener{
         }
     }
 
-    /**
-     * checks if red is in the winning position
-     * @return returns boolean value
-     */
-    boolean redWon() {
-        boolean b = false;
-        if(board[2][5] == 1) b = true;
-        return b;
-    }
+    
 
-    /**
-     * draws level boxes
-     * @param g2 graphics plane
-     * @param y y value of button
-     * @param lvl level number
-     */
-    void drawBoxes(Graphics2D g2, int y, int lvl){
-
-        //
-        g2.setColor(pink);
-        g2.fillRoundRect(40, y, 190,150,20,20);
-        g2.fillRoundRect(270, y, 190, 150, 20, 20);
-        g2.setColor(yellow);
-        g2.fillRoundRect(40,y+100, 190,50,20,20);
-        g2.fillRoundRect(270,y+100, 190,50,20,20);
-        g2.setColor(blue);
-        g2.drawString("Level " + lvl, 70, y+135);
-        drawStars(g2, lvl, 50, y);
-        lvl++;
-        drawStars(g2, lvl, 280, y);
-        g2.drawString("Level " + lvl, 300, y+135);
-    }
-
-    /**
-     * draws stars for scoring
-     * @param g2 the graphics canvas
-     * @param lvl the current level to get stars
-     * @param x starting x coord for the stars
-     * @param y the starting y coord for the stars
-     */
-    void drawStars(Graphics2D g2, int lvl, int x, int y) {
-
-        // get stars for level
-        boolean[] lvlStars = stars[lvl-1];
-
-        // draw each star
-        for(int i = 0; i < 3; i++) {
-            g2.drawImage((lvlStars[i]) ? star : eStar, x+(i*60), y+ ((i == 1) ? 20 : 35), null);
-        }
-    } 
+    
 
     @Override
     public void actionPerformed(ActionEvent e) {
@@ -407,31 +473,6 @@ public class MainGame extends JFrame implements ActionListener{
         }
     }
 
-    /** 
-     * gets the line to move the car
-     * @return returns line car is in
-     */
-    int[] findLine() {
-        int[] arr = new int[6];
-        // use IX dont do this sillt
-
-        // if the car is horizontal
-        if(!vert) {
-            // array is the array from the board --> no need to update separately
-            arr = board[ix];
-        }
-
-        // it is vertical
-        else {
-            // create an array for vertical
-            for(int i = 0; i < board.length; i++) {
-                arr[i] = board[i][iy];
-            }
-        }
-
-        return arr;
-    }
-
     class ML implements MouseListener {
 
         @Override
@@ -442,8 +483,15 @@ public class MainGame extends JFrame implements ActionListener{
 
             if(gamestate == GS.LEVELS){}
             // if they hit the pause button
-            if(mx1 > 50 && mx1 < 150 && my1 > 680 && my1 < 780) {
+            if(mx1 > 50 && mx1 < 150 && my1 > 680 && my1 < 780 && gamestate == GS.PLAYING) {
                 gamestate = GS.PAUSED;
+            }
+
+            if(mx1 >350 && mx1 < 415 && my1 > 695 && my1 < 760 && gamestate == GS.PLAYING) {
+                moves = 0;
+                sec = 0;
+                min = 0;
+                createBoard();
             }
             
             // if they hit back to game while pasued --> continue
@@ -473,17 +521,18 @@ public class MainGame extends JFrame implements ActionListener{
                 iy = mx1/(CELLH);
             }
         }
+
         @Override
         public void mouseReleased(MouseEvent e) {
 
             // get all coordinates --> which cell based on whre they let the mouse go
+            if(board[ix][iy] ==0 || !(mx1 > 0 && mx1 < SCRW && my1 > boardOffset && my1 < SCRW+boardOffset) || gamestate != GS.PLAYING) return;
+            if(mx1 != mx2 && my1 != my2) moves++;
             mx2 = e.getX(); my2 = e.getY();
             int ix2 = (my2-boardOffset-30)/CELLW;
             int iy2 = mx2/(CELLH);
 
             // if they did not select a car
-            if(board[ix][iy] ==0) return;
-
             // check if vertical or not
             checkAdj(ix, iy);
             
