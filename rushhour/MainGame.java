@@ -60,14 +60,14 @@ public class MainGame extends JFrame implements ActionListener{
     int mx1,my1, mx2, my2;
     GS gamestate = GS.PLAYING;
     int[][] board = new int[6][6];
-    int level = 0; // level starting at 0
+    int level = 4; // level starting at 0
     final static int boardOffset = 165;
     boolean vert = false;
     int ix, iy; // selected car
 
 
 
-    final static Color[] carColors = {Color.RED, Color.BLUE, Color.PINK, Color.ORANGE, Color.GREEN};
+    final static Color[] carColors = {Color.RED, Color.BLUE, Color.PINK, Color.ORANGE, Color.GREEN, Color.YELLOW, Color.MAGENTA, Color.CYAN};
 
     MainGame() {
         this.setDefaultCloseOperation(EXIT_ON_CLOSE);
@@ -310,6 +310,10 @@ public class MainGame extends JFrame implements ActionListener{
         }
     }
 
+    /**
+     * draws level boxes
+     * @g2 
+     */
     void drawBoxes(Graphics2D g2, int y, int lvl){
         g2.setColor(pink);
         g2.fillRoundRect(40, y, 190,150,20,20);
@@ -331,35 +335,26 @@ public class MainGame extends JFrame implements ActionListener{
         }
     }
 
-    ArrayList<Point> findSegs() {
-        int sub = 0;
-        ArrayList<Point> seg = new ArrayList<>();
-        while(true) {
-            if(mx1-mx2 > 0) sub--;
-            else sub++;
-            // only goes 1 way make it go through both ways somehow
-
-            if(iy+sub < 0 || iy+sub > board.length-1) break;
-
-            if(board[ix][iy] != board[ix][iy+sub]) {
-                seg.add(0, new Point(ix,iy+(sub-1*-1)));
-            }
-            else {
-                seg.add(new Point(ix, iy+sub));
-                System.out.printf("%d %d ", ix, iy+sub);
-
-            }
-
-        }
-        return seg;
-    }
-
-    int[] findSegs2() {
+    /** 
+     * gets the line to move the car
+     * @return returns line car is in
+     */
+    int[] findLine() {
         int[] arr = new int[6];
         // use IX dont do this sillt
 
+        // if the car is horizontal
         if(!vert) {
+            // array is the array from the board --> no need to update separately
             arr = board[ix];
+        }
+
+        // it is vertical
+        else {
+            // create an array for vertical
+            for(int i = 0; i < board.length; i++) {
+                arr[i] = board[i][iy];
+            }
         }
 
         return arr;
@@ -369,6 +364,8 @@ public class MainGame extends JFrame implements ActionListener{
 
         @Override
         public void mousePressed(MouseEvent e) {
+
+            //get mouse coords
             mx1 = e.getX(); my1 = e.getY();
 
             
@@ -396,63 +393,67 @@ public class MainGame extends JFrame implements ActionListener{
                 }
             }
             
+            // if they click within the board
             if(mx1 > 0 && mx1 < SCRW && my1 > boardOffset && my1 < SCRW+boardOffset) {
+
+                // get selected cell
                 ix = (my1-boardOffset-30)/CELLW;
                 iy = mx1/(CELLH);
-                System.out.printf("%d %d ", ix, iy);
             }
         }
         @Override
         public void mouseReleased(MouseEvent e) {
+
+            // get all coordinates --> which cell based on whre they let the mouse go
             mx2 = e.getX(); my2 = e.getY();
             int ix2 = (my2-boardOffset-30)/CELLW;
             int iy2 = mx2/(CELLH);
-            System.out.printf("%d %d ", ix2, iy2);
-            if(board[ix][iy] ==0) return;
-            checkAdj(ix, iy);
-            int dir = 0;
-            int selectedCar = board[ix][iy];
 
-            int[] line = findSegs2();
-            line[1] = 1;
+            // if they did not select a car
+            if(board[ix][iy] ==0) return;
+
+            // check if vertical or not
+            checkAdj(ix, iy);
+
+
+            
+            int dir = 0; // direction it goes, forward or back
+            int selectedCar = board[ix][iy]; // which number is selected for the car
+            int[] line = findLine(); // find the line the car is on
+
+            // give the direction
             if(mx1-mx2 > 0) dir = -1;
             else dir = 1;
-            System.out.println(selectedCar);
-            if(vert) {
-                for(int i = 0; i < line.length; i++) {
-                    int temp = (dir == 1) ? Math.abs(i-5) : i;
-                    System.out.println(temp);
-                    if(line[temp] == selectedCar) {
-                        while(true) {
-                            if(temp+dir < 0 || temp+dir >= board.length || line[temp+dir] == selectedCar || line[temp+dir] != 0 || temp+dir < iy2 && dir == -1 || temp+dir > iy2 && dir == 1) break;
-        
-                            System.out.print(temp+dir+ " ");
-                            line[temp+dir] = line[temp];
-                            line[temp] = 0;
-                            temp+=dir;
-                        }
+
+            // loop through the line with the car
+            for(int i = 0; i < line.length; i++) {
+
+                // make it loop forwards or backwards based on which direction --> must meet head first
+                int temp = (dir == 1) ? Math.abs(i-5) : i;
+
+                // if the loop meets the car
+                if(line[temp] == selectedCar) {
+
+                    // moving code
+                    while(true) {
+
+                        // all break conditions
+                        if(temp+dir < 0 || temp+dir >= board.length || line[temp+dir] == selectedCar || line[temp+dir] != 0 
+                            || !vert && temp+dir < iy2 && dir == -1 || temp+dir > iy2 && dir == 1 || vert && temp+dir < ix2 && dir == -1 
+                            || temp+dir > ix2 && dir == 1) break;
+
+                        // move the car one in the direction
+                        line[temp+dir] = line[temp];
+                        //make previous location empty
+                        line[temp] = 0;
                     }
                 }
+
+                // update array only if vertical(doesnt take an actual array)
+                for(int j = 0; vert && j < board.length; j++) {
+                    board[j][iy] = line[j];
+                }
             }
-
-
-            // if(xdiff > ydiff && !vert) {
-            //     segs = findSegs();
-            //     if(mx1-mx2 > 0) dir = -1;
-            //     else dir = 1; 
-            //     while(true) {
-            //         if(segs.size() == 0 || segs.get(0).y+dir < 0 || segs.get(0).y+dir > board.length-1 ) break;
-
-            //         for(int i = 0; i < segs.size(); i++) {
-            //             Point p = segs.get(i);
-            //             p.y+=dir;
-            //         }
-            //     }
-            // }
-
-            System.out.printf(Arrays.toString(line));
-
-
         }
 
         @Override
