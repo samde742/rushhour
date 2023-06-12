@@ -36,11 +36,13 @@ public class MainGame extends JFrame implements ActionListener{
     enum GS {
         PLAYING,
         PAUSED,
-        LEVELS
+        LEVELS,
+        WIN
     }
 
     final static int SCRW = 500, SCRH = 800;
     final static int CELLW = SCRW/6, CELLH = SCRW/6;
+    final static int maxLevels = 6;
     Font f = new Font("Monospaced", Font.BOLD, 30);
     Font title = new Font("Monospaced", Font.BOLD, 50);
     Color blue = new Color(167, 199, 231);
@@ -56,10 +58,11 @@ public class MainGame extends JFrame implements ActionListener{
     int min = 0;
     int moves = 0;
     MouseListener ML = new ML();
-    Image pauseButton, restartButton, logo;
+    Image pauseButton, restartButton, logo, eStar, star;
     int mx1,my1, mx2, my2;
     GS gamestate = GS.PLAYING;
     int[][] board = new int[6][6];
+    boolean[][] stars = new boolean[6][3];
     int level = 4; // level starting at 0
     final static int boardOffset = 165;
     boolean vert = false;
@@ -67,7 +70,7 @@ public class MainGame extends JFrame implements ActionListener{
 
 
 
-    final static Color[] carColors = {Color.RED, Color.BLUE, Color.PINK, Color.ORANGE, Color.GREEN, Color.YELLOW, Color.MAGENTA, Color.CYAN};
+    final static Color[] carColors = {Color.RED, Color.BLUE, Color.PINK, Color.ORANGE, Color.GREEN, Color.CYAN, Color.MAGENTA};
 
     MainGame() {
         this.setDefaultCloseOperation(EXIT_ON_CLOSE);
@@ -78,6 +81,9 @@ public class MainGame extends JFrame implements ActionListener{
         pauseButton = loadImage("pause.png").getScaledInstance(100, 100, Image.SCALE_DEFAULT);
         restartButton = loadImage("restart.png").getScaledInstance(65, 65, Image.SCALE_DEFAULT);
         logo = loadImage("RushHourLogo.png").getScaledInstance(400, 180, Image.SCALE_DEFAULT);
+        eStar = loadImage("emptyStar.png").getScaledInstance(50, 50, Image.SCALE_DEFAULT);
+        star = loadImage("emptyStar.png").getScaledInstance(50, 50, Image.SCALE_DEFAULT);
+
 
         this.add(DP);
         
@@ -206,7 +212,7 @@ public class MainGame extends JFrame implements ActionListener{
 
                 // Grid
                 g2.setColor(yellow);
-                // g2.fillRect(0, boardOffset, 500, 500);
+                g2.fillRect(0, boardOffset, 500, 500);
                 g2.setStroke(new BasicStroke(5));
                 g2.setColor(darkYellow);
 
@@ -307,12 +313,34 @@ public class MainGame extends JFrame implements ActionListener{
                 drawBoxes(g2, 400, 3);
                 drawBoxes(g2, 600, 5);
             }
+
+            if(gamestate == GS.WIN){
+                g2.setColor(pink);
+                g2.drawRect(30,30, SCRW - 30, SCRH - 30);
+                g2.drawString("Level" + (level+=1) + " Complete!", 100,50);
+                //draw stars
+                
+                g2.drawString("Moves made: " + moves, 100, 200);
+                // g2.drawString("Time taken: " )
+            }
         }
     }
 
     /**
+     * checks if red is in the winning position
+     * @return returns boolean value
+     */
+    boolean redWon() {
+        boolean b = false;
+        if(board[2][5] == 1) b = true;
+        return b;
+    }
+
+    /**
      * draws level boxes
-     * @g2 
+     * @param g2 graphics plane
+     * @param y y value of button
+     * @param lvl level number
      */
     void drawBoxes(Graphics2D g2, int y, int lvl){
         g2.setColor(pink);
@@ -325,6 +353,10 @@ public class MainGame extends JFrame implements ActionListener{
         g2.drawString("Level " + lvl, 70, y+135);
         lvl++;
         g2.drawString("Level " + lvl, 300, y+135);
+        boolean[] lvlStars = stars[level];
+        for(int i = 0; i < 3; i++) {
+            g2.drawImage(((lvlStars[i]) ? eStar : star), 40+(i*30), y+20, null);
+        }
     }
 
     @Override
@@ -332,6 +364,9 @@ public class MainGame extends JFrame implements ActionListener{
         DP.repaint();
         if(gamestate == GS.PAUSED) {
             return;
+        }
+        if(redWon()) {
+            gamestate = GS.WIN;
         }
     }
 
@@ -368,7 +403,7 @@ public class MainGame extends JFrame implements ActionListener{
             //get mouse coords
             mx1 = e.getX(); my1 = e.getY();
 
-            
+            if(gamestate == GS.LEVELS){}
             // if they hit the pause button
             if(mx1 > 50 && mx1 < 150 && my1 > 680 && my1 < 780) {
                 gamestate = GS.PAUSED;
@@ -414,15 +449,13 @@ public class MainGame extends JFrame implements ActionListener{
 
             // check if vertical or not
             checkAdj(ix, iy);
-
-
             
             int dir = 0; // direction it goes, forward or back
             int selectedCar = board[ix][iy]; // which number is selected for the car
             int[] line = findLine(); // find the line the car is on
 
             // give the direction
-            if(mx1-mx2 > 0) dir = -1;
+            if(mx1-mx2 > 0 && !vert || my1-my2 > 0 && vert) dir = -1;
             else dir = 1;
 
             // loop through the line with the car
@@ -430,25 +463,27 @@ public class MainGame extends JFrame implements ActionListener{
 
                 // make it loop forwards or backwards based on which direction --> must meet head first
                 int temp = (dir == 1) ? Math.abs(i-5) : i;
-
+                System.out.println(Arrays.toString(line));
                 // if the loop meets the car
+                
                 if(line[temp] == selectedCar) {
-
+                
                     // moving code
                     while(true) {
 
                         // all break conditions
                         if(temp+dir < 0 || temp+dir >= board.length || line[temp+dir] == selectedCar || line[temp+dir] != 0 
-                            || !vert && temp+dir < iy2 && dir == -1 || temp+dir > iy2 && dir == 1 || vert && temp+dir < ix2 && dir == -1 
-                            || temp+dir > ix2 && dir == 1) break;
+                            || !vert && temp+dir < iy2 && dir == -1 || !vert && temp+dir > iy2 && dir == 1 || vert && temp+dir < ix2 && dir == -1 
+                            || vert && temp+dir > ix2 && dir == 1) break;
 
                         // move the car one in the direction
                         line[temp+dir] = line[temp];
                         //make previous location empty
                         line[temp] = 0;
+                        // moves car index
+                        temp+=dir;
                     }
                 }
-
                 // update array only if vertical(doesnt take an actual array)
                 for(int j = 0; vert && j < board.length; j++) {
                     board[j][iy] = line[j];
