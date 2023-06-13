@@ -13,7 +13,6 @@ import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Image;
-import java.awt.Point;
 import java.awt.RenderingHints;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -24,7 +23,6 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.ArrayList;
 import java.util.Arrays;
 
 public class MainGame extends JFrame implements ActionListener{
@@ -60,14 +58,14 @@ public class MainGame extends JFrame implements ActionListener{
     MouseListener ML = new ML();
     Image pauseButton, restartButton, logo, eStar, star;
     int mx1,my1, mx2, my2;
-    GS gamestate = GS.LEVELS; ///////////////////////////////////////////////////////////////////////////////////////////////
+    GS gamestate = GS.PAUSED; ///////////////////////////////////////////////////////////////////////////////////////////////
     int[][] board = new int[6][6];
     boolean[][] stars = new boolean[6][3];
     int level = 0; // level starting at 0
     final static int boardOffset = 165;
     boolean vert = false;
     int ix, iy; // selected car
-    Button back, levelButton, quit;
+    Button large, medium, quit;
     Button[] levels = new Button[6];
 
     final static Color[] carColors = {Color.RED, Color.BLUE, Color.PINK, Color.ORANGE, Color.GREEN, Color.CYAN, Color.MAGENTA, Color.BLACK};
@@ -84,8 +82,8 @@ public class MainGame extends JFrame implements ActionListener{
         eStar = loadImage("emptyStar.png").getScaledInstance(50, 50, Image.SCALE_DEFAULT);
         star = loadImage("star.png").getScaledInstance(50, 50, Image.SCALE_DEFAULT);
 
-        back = new Button(80, 490, 340, 60, 20, 20);
-        levelButton = new Button(80, 580, 180, 60, 20, 20);
+        large = new Button(80, 490, 340, 60, 20, 20);
+        medium = new Button(80, 580, 180, 60, 20, 20);
         quit = new Button(280, 580, 140, 60, 20, 20);
 
         int diff = 1; 
@@ -288,6 +286,7 @@ public class MainGame extends JFrame implements ActionListener{
 
     void drawPopup(Graphics2D g2, String title, String btn1, String btn2, String btn3){
        
+        // HEADER
         g2.setStroke(new BasicStroke(5));
         g2.setColor(pink);
         g2.fillRect(50, 100, 400,600);
@@ -297,20 +296,25 @@ public class MainGame extends JFrame implements ActionListener{
         g2.setColor(darkBlue);                
         g2.drawLine(50,200,450,200);
         g2.drawString(title, 158,170);
+
+        // BUTTONS
         g2.setColor(yellow);
-        g2.fillRoundRect(back.x, back.y, back.w, back.h, back.aW, back.aH); //main btn (btn1)
+        g2.fillRoundRect(large.x, large.y, large.w, large.h, large.aW, large.aH); //main btn (btn1)
         g2.setColor(blue);
-        g2.fillRoundRect(80, 580, 180, 60, 20, 20);
-        g2.fillRoundRect(280, 580, 140, 60, 20, 20);
+        g2.fillRoundRect(medium.x, medium.y, medium.w, medium.h, medium.aW, medium.aH); //  levels
+        g2.fillRoundRect(quit.x, quit.y, quit.w, quit.h, quit.aW,quit.aH); // quit
+
+        // OUTLINES
         g2.setColor(darkYellow);
         g2.drawRoundRect(80, 490, 340, 60, 20, 20);
         g2.setColor(darkBlue);
         g2.drawRoundRect(80, 580, 180, 60, 20, 20);
         g2.drawRoundRect(280, 580, 140, 60, 20, 20);
+
+        // TITLES
         g2.setFont(f);
         g2.drawString(btn1,140,530);
         g2.setColor(yellow);
-
         g2.drawString(btn2,115,620);
         g2.drawString(btn3,312,620);
         g2.setColor(darkBlue);
@@ -333,7 +337,7 @@ public class MainGame extends JFrame implements ActionListener{
             g2.setFont(f);
 
             // if they are playing or paused, draw screen
-            if(gamestate == GS.PLAYING || gamestate == GS.PAUSED) {
+            if(gamestate == GS.PLAYING || gamestate == GS.PAUSED || gamestate == GS.WIN) {
                 g2.setColor(pink);
 
                 //moves, time
@@ -446,10 +450,7 @@ public class MainGame extends JFrame implements ActionListener{
             }
 
             if(gamestate == GS.WIN){
-                drawPopup(g2, "Level" + (level+1) + " Complete!", "Levels", "Retry", "Quit");
-
-                // g2.drawString("Level " + (level+1) + " Complete!", 100,50);
-                //draw stars
+                drawPopup(g2, "Level " + (level+1), "Go To Levels", "Replay", "Quit");
                 
                 drawStars(g2, level+1, 100, 150);
                 g2.setFont(f);
@@ -461,10 +462,6 @@ public class MainGame extends JFrame implements ActionListener{
             }
         }
     }
-
-    
-
-    
 
     @Override
     public void actionPerformed(ActionEvent e) {
@@ -488,7 +485,7 @@ public class MainGame extends JFrame implements ActionListener{
 
             //get mouse coords
             mx1 = e.getX(); my1 = e.getY();
-
+            System.out.printf("%d %d", mx1, my1);
             //CREATE BUTTON CLASS FOR CLICKING
 
             if(gamestate == GS.LEVELS){}
@@ -506,22 +503,27 @@ public class MainGame extends JFrame implements ActionListener{
             
             // if they hit back to game while pasued --> continue
             if(gamestate == GS.PAUSED) {
+                int x = mx1-30;
+                int y = my1-30;
+                if(large.contains(x, y)) gamestate = GS.PLAYING;
+                if(medium.contains(x, y)) gamestate = GS.LEVELS;
+                if(quit.contains(x, y)) System.exit(1);
                 
                 // if they resume
-                if(mx1 > 80 && mx1 < 420 && my1 > 490 && my1 < 580) {
-                    gamestate = GS.PLAYING;
-                }
+                // if(mx1 > 80 && mx1 < 420 && my1 > 490 && my1 < 580) {
+                //     gamestate = GS.PLAYING;
+                // }
 
                 // if they hit levels
-                if(mx1 > 80 && mx1 < 260 && my1 > 580 && my1 < 670) {
-                    gamestate = GS.LEVELS;
-                }
+                // if(mx1 > 80 && mx1 < 260 && my1 > 580 && my1 < 670) {
+                //     gamestate = GS.LEVELS;
+                // }
 
-                // if they hit quit
-                if(mx1 > 280 && mx1 < 420 && my1 > 580 && my1 < 670) {
-                    // QUIT CODE
-                    System.exit(1);
-                }
+                // // if they hit quit
+                // if(mx1 > 280 && mx1 < 420 && my1 > 580 && my1 < 670) {
+                //     // QUIT CODE
+                //     System.exit(1);
+                // }
             }
             
             // if they click within the board
