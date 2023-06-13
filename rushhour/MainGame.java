@@ -372,9 +372,8 @@ public class MainGame extends JFrame implements ActionListener{
                     }
                 }
 
-                // pause, levels, play
+                // pause, restart
                 g2.drawImage(pauseButton, 50, 680, null);
-
                 g2.drawImage(restartButton, 350, 695, null);
             }
             if(gamestate == GS.PAUSED){
@@ -480,6 +479,8 @@ public class MainGame extends JFrame implements ActionListener{
 
             //get mouse coords
             mx1 = e.getX(); my1 = e.getY();
+
+            //CREATE BUTTON CLASS FOR CLICKING
 
             if(gamestate == GS.LEVELS){}
             // if they hit the pause button
