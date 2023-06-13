@@ -60,7 +60,7 @@ public class MainGame extends JFrame implements ActionListener{
     MouseListener ML = new ML();
     Image pauseButton, restartButton, logo, eStar, star;
     int mx1,my1, mx2, my2;
-    GS gamestate = GS.WIN; ///////////////////////////////////////////////////////////////////////////////////////////////
+    GS gamestate = GS.LEVELS; ///////////////////////////////////////////////////////////////////////////////////////////////
     int[][] board = new int[6][6];
     boolean[][] stars = new boolean[6][3];
     int level = 0; // level starting at 0
@@ -69,7 +69,6 @@ public class MainGame extends JFrame implements ActionListener{
     int ix, iy; // selected car
     Button back, levelButton, quit;
     Button[] levels = new Button[6];
-    Button[] levelName = new Button[6];
 
     final static Color[] carColors = {Color.RED, Color.BLUE, Color.PINK, Color.ORANGE, Color.GREEN, Color.CYAN, Color.MAGENTA, Color.BLACK};
 
@@ -92,10 +91,8 @@ public class MainGame extends JFrame implements ActionListener{
         int diff = 1; 
         for(int i = 0; i < 6; i++) {
             if(i%2 ==0 && i!=0) diff++;
-            levels[i] = new Button(40, 200*diff, 190,150,20,20);
-
-            g2.fillRoundRect(40,y+100, 190,50,20,20);
-        g2.fillRoundRect(270,y+100, 190,50,20,20);
+            System.out.print(i);
+            levels[i] = new Button(((i%2 != 0) ? 270 : 40), 200*diff, 190,150,20,20);
         } 
 
         this.add(DP);
@@ -249,10 +246,9 @@ public class MainGame extends JFrame implements ActionListener{
      */
     void drawBoxes(Graphics2D g2, int y, int l){
 
-        // background pink square
-        
+        // add to level buttons
         Button b1 = levels[l-1];
-        Button b2 = levels[l-1];
+        Button b2 = levels[l];
         
         g2.setColor(pink);
         g2.fillRoundRect(b1.x, b1.y, b1.w, b1.h, b1.aW, b1.aH);
@@ -260,7 +256,8 @@ public class MainGame extends JFrame implements ActionListener{
 
         // text background yellow square
         g2.setColor(yellow);
-        
+        g2.fillRoundRect(40,y+100, 190,50,20,20);
+        g2.fillRoundRect(270,y+100, 190,50,20,20);
 
         // words, stars
         g2.setColor(blue);
