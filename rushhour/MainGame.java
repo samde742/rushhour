@@ -58,7 +58,7 @@ public class MainGame extends JFrame implements ActionListener{
     MouseListener ML = new ML();
     Image pauseButton, restartButton, logo, eStar, star;
     int mx1,my1, mx2, my2;
-    GS gamestate = GS.PAUSED; ///////////////////////////////////////////////////////////////////////////////////////////////
+    GS gamestate = GS.LEVELS; ///////////////////////////////////////////////////////////////////////////////////////////////
     int[][] board = new int[6][6];
     boolean[][] stars = new boolean[6][3];
     int level = 0; // level starting at 0
@@ -79,8 +79,7 @@ public class MainGame extends JFrame implements ActionListener{
         pauseButton = loadImage("pause.png").getScaledInstance(100, 100, Image.SCALE_DEFAULT);
         restartButton = loadImage("restart.png").getScaledInstance(65, 65, Image.SCALE_DEFAULT);
         logo = loadImage("RushHourLogo.png").getScaledInstance(400, 180, Image.SCALE_DEFAULT);
-        eStar = loadImage("emptyStar.png").getScaledInstance(50, 50, Image.SCALE_DEFAULT);
-        star = loadImage("star.png").getScaledInstance(50, 50, Image.SCALE_DEFAULT);
+        
 
         large = new Button(80, 490, 340, 60, 20, 20);
         medium = new Button(80, 580, 180, 60, 20, 20);
@@ -260,9 +259,9 @@ public class MainGame extends JFrame implements ActionListener{
         // words, stars
         g2.setColor(blue);
         g2.drawString("Level " + l, 70, y+135);
-        drawStars(g2, l, 50, y);
+        drawStars(g2, l, 50, y, 50,50);
         l++;
-        drawStars(g2, l, 280, y);
+        drawStars(g2, l, 280, y, 50, 50);
         g2.drawString("Level " + l, 300, y+135);
     }
 
@@ -273,14 +272,18 @@ public class MainGame extends JFrame implements ActionListener{
      * @param x starting x coord for the stars
      * @param y the starting y coord for the stars
      */
-    void drawStars(Graphics2D g2, int lvl, int x, int y) {
+    void drawStars(Graphics2D g2, int lvl, int x, int y, int w, int h) {
 
         // get stars for level
         boolean[] lvlStars = stars[lvl-1];
 
+        // size stars
+        eStar = loadImage("emptyStar.png").getScaledInstance(w, h, Image.SCALE_DEFAULT);
+        star = loadImage("star.png").getScaledInstance(w, h, Image.SCALE_DEFAULT);
+
         // draw each star
         for(int i = 0; i < 3; i++) {
-            g2.drawImage((lvlStars[i]) ? star : eStar, x+(i*60), y+ ((i == 1) ? 20 : 35), null);
+            g2.drawImage(((lvlStars[i]) ? star : eStar), x+(i*w+10), y+ ((i == 1) ? 20 : 35), null);
         }
     } 
 
@@ -452,11 +455,11 @@ public class MainGame extends JFrame implements ActionListener{
             if(gamestate == GS.WIN){
                 drawPopup(g2, "Level " + (level+1), "Go To Levels", "Replay", "Quit");
                 
-                drawStars(g2, level+1, 100, 150);
+                drawStars(g2, level+1, 90, 190, 100, 100);
                 g2.setFont(f);
                 
-                g2.drawString("Moves made: " + moves, 100, 300);
-                g2.drawString("Time taken: " + min + ":" + sec, 100, 350);
+                g2.drawString("Moves: " + moves, 175, 350);
+                g2.drawString("Time: " + min + ":" + sec, 175, 450);
                 
                 
             }
@@ -502,28 +505,33 @@ public class MainGame extends JFrame implements ActionListener{
             }
             
             // if they hit back to game while pasued --> continue
+            int x = mx1-30;
+            int y = my1-30;
             if(gamestate == GS.PAUSED) {
-                int x = mx1-30;
-                int y = my1-30;
                 if(large.contains(x, y)) gamestate = GS.PLAYING;
                 if(medium.contains(x, y)) gamestate = GS.LEVELS;
                 if(quit.contains(x, y)) System.exit(1);
-                
-                // if they resume
-                // if(mx1 > 80 && mx1 < 420 && my1 > 490 && my1 < 580) {
-                //     gamestate = GS.PLAYING;
-                // }
+            }
+            
 
-                // if they hit levels
-                // if(mx1 > 80 && mx1 < 260 && my1 > 580 && my1 < 670) {
-                //     gamestate = GS.LEVELS;
-                // }
+            if(gamestate == GS.LEVELS) {
+                for(int i = 0; i < levels.length; i++) {
+                    Button b = levels[i];
+                    if(b.contains(x, y)) {
+                        level = i;
+                        createBoard();
+                        gamestate = GS.PLAYING;
+                    }
+                }
+            }
 
-                // // if they hit quit
-                // if(mx1 > 280 && mx1 < 420 && my1 > 580 && my1 < 670) {
-                //     // QUIT CODE
-                //     System.exit(1);
-                // }
+            if(gamestate == GS.WIN) {
+                if(large.contains(x, y)) gamestate = GS.LEVELS;
+                if(medium.contains(x, y)) {
+                    createBoard();
+                    gamestate = GS.PLAYING;
+                }
+                if(quit.contains(x, y)) System.exit(1);
             }
             
             // if they click within the board
@@ -539,8 +547,8 @@ public class MainGame extends JFrame implements ActionListener{
         public void mouseReleased(MouseEvent e) {
 
             // get all coordinates --> which cell based on whre they let the mouse go
-            if(board[ix][iy] ==0 || !(mx1 > 0 && mx1 < SCRW && my1 > boardOffset && my1 < SCRW+boardOffset) || gamestate != GS.PLAYING) return;
-            if(mx1 != mx2 && my1 != my2) moves++;
+            if(board[ix][iy] ==0 || !(mx1 > 0 && mx1 < SCRW && my1 > boardOffset && my1 < SCRW+boardOffset) 
+                || gamestate != GS.PLAYING) return;
             mx2 = e.getX(); my2 = e.getY();
             int ix2 = (my2-boardOffset-30)/CELLW;
             int iy2 = mx2/(CELLH);
@@ -576,6 +584,7 @@ public class MainGame extends JFrame implements ActionListener{
                             || vert && temp+dir > ix2 && dir == 1) break;
 
                         // move the car one in the direction
+                        
                         line[temp+dir] = line[temp];
                         //make previous location empty
                         line[temp] = 0;
