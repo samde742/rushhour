@@ -44,7 +44,7 @@ public class MainGame extends JFrame implements ActionListener{
     final static int CELLW = SCRW/6, CELLH = SCRW/6;
     final static int maxLevels = 6;
     Font f = new Font("Monospaced", Font.BOLD, 30);
-    Font title = new Font("Monospaced", Font.BOLD, 50);
+    Font big = new Font("Monospaced", Font.BOLD, 50);
     Color blue = new Color(167, 199, 231);
     Color yellow = new Color(248, 241, 174);
     Color darkBlue = new Color(61, 66, 107);
@@ -60,15 +60,16 @@ public class MainGame extends JFrame implements ActionListener{
     MouseListener ML = new ML();
     Image pauseButton, restartButton, logo, eStar, star;
     int mx1,my1, mx2, my2;
-    GS gamestate = GS.PLAYING;
+    GS gamestate = GS.WIN; ///////////////////////////////////////////////////////////////////////////////////////////////
     int[][] board = new int[6][6];
     boolean[][] stars = new boolean[6][3];
-    int level = 4; // level starting at 0
+    int level = 0; // level starting at 0
     final static int boardOffset = 165;
     boolean vert = false;
     int ix, iy; // selected car
-
-
+    Button back, levelButton, quit;
+    Button[] levels = new Button[6];
+    Button[] levelName = new Button[6];
 
     final static Color[] carColors = {Color.RED, Color.BLUE, Color.PINK, Color.ORANGE, Color.GREEN, Color.CYAN, Color.MAGENTA, Color.BLACK};
 
@@ -84,9 +85,20 @@ public class MainGame extends JFrame implements ActionListener{
         eStar = loadImage("emptyStar.png").getScaledInstance(50, 50, Image.SCALE_DEFAULT);
         star = loadImage("star.png").getScaledInstance(50, 50, Image.SCALE_DEFAULT);
 
+        back = new Button(80, 490, 340, 60, 20, 20);
+        levelButton = new Button(80, 580, 180, 60, 20, 20);
+        quit = new Button(280, 580, 140, 60, 20, 20);
+
+        int diff = 1; 
+        for(int i = 0; i < 6; i++) {
+            if(i%2 ==0 && i!=0) diff++;
+            levels[i] = new Button(40, 200*diff, 190,150,20,20);
+
+            g2.fillRoundRect(40,y+100, 190,50,20,20);
+        g2.fillRoundRect(270,y+100, 190,50,20,20);
+        } 
 
         this.add(DP);
-        
         this.pack();
         this.setVisible(true);
         this.setLocationRelativeTo(null);
@@ -235,25 +247,28 @@ public class MainGame extends JFrame implements ActionListener{
      * @param y y value of button
      * @param lvl level number
      */
-    void drawBoxes(Graphics2D g2, int y, int lvl){
+    void drawBoxes(Graphics2D g2, int y, int l){
 
         // background pink square
+        
+        Button b1 = levels[l-1];
+        Button b2 = levels[l-1];
+        
         g2.setColor(pink);
-        g2.fillRoundRect(40, y, 190,150,20,20);
-        g2.fillRoundRect(270, y, 190, 150, 20, 20);
+        g2.fillRoundRect(b1.x, b1.y, b1.w, b1.h, b1.aW, b1.aH);
+        g2.fillRoundRect(b2.x, b2.y, b2.w, b2.h, b2.aW, b2.aH);
 
         // text background yellow square
         g2.setColor(yellow);
-        g2.fillRoundRect(40,y+100, 190,50,20,20);
-        g2.fillRoundRect(270,y+100, 190,50,20,20);
+        
 
         // words, stars
         g2.setColor(blue);
-        g2.drawString("Level " + lvl, 70, y+135);
-        drawStars(g2, lvl, 50, y);
-        lvl++;
-        drawStars(g2, lvl, 280, y);
-        g2.drawString("Level " + lvl, 300, y+135);
+        g2.drawString("Level " + l, 70, y+135);
+        drawStars(g2, l, 50, y);
+        l++;
+        drawStars(g2, l, 280, y);
+        g2.drawString("Level " + l, 300, y+135);
     }
 
     /**
@@ -274,11 +289,42 @@ public class MainGame extends JFrame implements ActionListener{
         }
     } 
 
+    void drawPopup(Graphics2D g2, String title, String btn1, String btn2, String btn3){
+       
+        g2.setStroke(new BasicStroke(5));
+        g2.setColor(pink);
+        g2.fillRect(50, 100, 400,600);
+        g2.setColor(blue);
+        g2.fillRect(50, 100, 400,100);
+        g2.setFont(big);
+        g2.setColor(darkBlue);                
+        g2.drawLine(50,200,450,200);
+        g2.drawString(title, 158,170);
+        g2.setColor(yellow);
+        g2.fillRoundRect(back.x, back.y, back.w, back.h, back.aW, back.aH); //main btn (btn1)
+        g2.setColor(blue);
+        g2.fillRoundRect(80, 580, 180, 60, 20, 20);
+        g2.fillRoundRect(280, 580, 140, 60, 20, 20);
+        g2.setColor(darkYellow);
+        g2.drawRoundRect(80, 490, 340, 60, 20, 20);
+        g2.setColor(darkBlue);
+        g2.drawRoundRect(80, 580, 180, 60, 20, 20);
+        g2.drawRoundRect(280, 580, 140, 60, 20, 20);
+        g2.setFont(f);
+        g2.drawString(btn1,140,530);
+        g2.setColor(yellow);
+
+        g2.drawString(btn2,115,620);
+        g2.drawString(btn3,312,620);
+        g2.setColor(darkBlue);
+        g2.drawRect(50, 100, 400,600);
+    }
+
     class DrawingPanel extends JPanel {
         DrawingPanel() {
             this.setPreferredSize(new Dimension(SCRW,SCRH));
             this.setBackground(new Color(179, 199, 226));
-
+            
         }
 
         @Override
@@ -304,7 +350,7 @@ public class MainGame extends JFrame implements ActionListener{
                 g2.setColor(darkBlue);
                 g2.drawString("Time:", 30, 50);
                 g2.drawString("Moves: ", 330, 50);
-                g2.setFont(title);
+                g2.setFont(big);
                 g2.drawString(min + ":" + ((sec < 10) ? "0" : "") + sec, 105, 100);
                 g2.drawString("" +moves, 385, 100);
 
@@ -377,38 +423,14 @@ public class MainGame extends JFrame implements ActionListener{
                 g2.drawImage(restartButton, 350, 695, null);
             }
             if(gamestate == GS.PAUSED){
-
-                g2.setStroke(new BasicStroke(5));
-                g2.setColor(pink);
-                g2.fillRect(50, 100, 400,600);
-                g2.setColor(blue);
-                g2.fillRect(50, 100, 400,100);
-                g2.setFont(title);
-                g2.setColor(darkBlue);                
-                g2.drawLine(50,200,450,200);
+                drawPopup(g2, "PAUSED", "Back To Game", "Levels", "Quit");
+                g2.setFont(big);
                 g2.drawString("PAUSED", 158,170);
                 g2.setFont(f);
                 g2.setColor(darkBlue);                
                 g2.drawString("Level: " + 3, 175, 250);
                 g2.drawString("Moves: " + moves, 175, 350);
                 g2.drawString("Time: " + min + ":" + sec, 175, 450);
-                g2.setColor(yellow);
-                g2.fillRoundRect(80, 490, 340, 60, 20, 20); // 340 X 60 BACK TO GAME
-                g2.setColor(blue);
-                g2.fillRoundRect(80, 580, 180, 60, 20, 20);
-                g2.fillRoundRect(280, 580, 140, 60, 20, 20);
-                g2.setColor(darkYellow);
-                g2.drawRoundRect(80, 490, 340, 60, 20, 20);
-                g2.setColor(darkBlue);
-                g2.drawRoundRect(80, 580, 180, 60, 20, 20);
-                g2.drawRoundRect(280, 580, 140, 60, 20, 20);
-                g2.drawString("Back To Game",140,530);
-                g2.setColor(yellow);
-
-                g2.drawString("Levels",115,620);
-                g2.drawString("Quit",312,620);
-                g2.setColor(darkBlue);
-                g2.drawRect(50, 100, 400,600);
 
             }
 
@@ -427,27 +449,17 @@ public class MainGame extends JFrame implements ActionListener{
             }
 
             if(gamestate == GS.WIN){
-                g2.setColor(pink);
-                g2.drawRect(30,30, SCRW-30, SCRH - 30);
-                g2.drawString("Level " + (level+1) + " Complete!", 100,50);
+                drawPopup(g2, "Level" + (level+1) + " Complete!", "Levels", "Retry", "Quit");
+
+                // g2.drawString("Level " + (level+1) + " Complete!", 100,50);
                 //draw stars
+                
                 drawStars(g2, level+1, 100, 150);
+                g2.setFont(f);
                 
                 g2.drawString("Moves made: " + moves, 100, 300);
                 g2.drawString("Time taken: " + min + ":" + sec, 100, 350);
                 
-                g2.setColor(yellow);
-                g2.fillRoundRect(100, 400, 340, 60, 20, 20);
-                g2.setColor(darkBlue);
-                g2.drawString("Levels",100,440);
-                g2.setColor(blue);
-                g2.fillRoundRect(100, 580, 180, 60, 20, 20);
-                g2.fillRoundRect(280, 580, 140, 60, 20, 20);
-                g2.setColor(darkYellow);
-                g2.drawRoundRect(80, 490, 340, 60, 20, 20);
-                g2.setColor(darkBlue);
-                g2.drawRoundRect(80, 580, 180, 60, 20, 20);
-                g2.drawRoundRect(280, 580, 140, 60, 20, 20);
                 
             }
         }
@@ -509,8 +521,9 @@ public class MainGame extends JFrame implements ActionListener{
                 }
 
                 // if they hit quit
-                if(mx1 > 280 && mx1 < 420 && my1 > 580 && my1 < 640) {
+                if(mx1 > 280 && mx1 < 420 && my1 > 580 && my1 < 670) {
                     // QUIT CODE
+                    System.exit(1);
                 }
             }
             
