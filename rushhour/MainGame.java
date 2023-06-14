@@ -60,15 +60,15 @@ public class MainGame extends JFrame implements ActionListener{
     int mx1,my1, mx2, my2;
     GS gamestate = GS.LEVELS; ///////////////////////////////////////////////////////////////////////////////////////////////
     int[][] board = new int[6][6];
-    boolean[][] stars = new boolean[6][3];
+    boolean[][] levelStars = new boolean[6][3];
     int level = 0; // level starting at 0
     final static int boardOffset = 165;
     boolean vert = false;
     int ix, iy; // selected car
     Button large, medium, quit;
     Button[] levels = new Button[6];
-
     final static Color[] carColors = {Color.RED, Color.BLUE, Color.PINK, Color.ORANGE, Color.GREEN, Color.CYAN, Color.MAGENTA, Color.BLACK};
+    int[] minMoves = {4, 8, 11, 14, 20, 29};
 
     MainGame() {
         this.setDefaultCloseOperation(EXIT_ON_CLOSE);
@@ -275,7 +275,7 @@ public class MainGame extends JFrame implements ActionListener{
     void drawStars(Graphics2D g2, int lvl, int x, int y, int w, int h) {
 
         // get stars for level
-        boolean[] lvlStars = stars[lvl-1];
+        boolean[] lvlStars = levelStars[lvl-1];
 
         // size stars
         eStar = loadImage("emptyStar.png").getScaledInstance(w, h, Image.SCALE_DEFAULT);
@@ -322,6 +322,17 @@ public class MainGame extends JFrame implements ActionListener{
         g2.drawString(btn3,312,620);
         g2.setColor(darkBlue);
         g2.drawRect(50, 100, 400,600);
+    }
+
+    void calculateStars() {
+        int stars = 0;
+        if(moves <= minMoves[level]+3) stars = 3;
+        if(moves >= minMoves[level]+3 && moves < minMoves[level] + 6) stars = 2;
+        if(moves >= minMoves[level]+6 && moves < minMoves[level] + 9) stars = 1;
+
+        for(int i = 0; i < stars; i ++) {
+            levelStars[level][i] = true;
+        }
     }
 
     class DrawingPanel extends JPanel {
@@ -453,7 +464,7 @@ public class MainGame extends JFrame implements ActionListener{
             }
 
             if(gamestate == GS.WIN){
-                drawPopup(g2, "Level " + (level+1), "Go To Levels", "Replay", "Quit");
+                drawPopup(g2, "Level " + (level+1), "Play Level " + (level+2), "Replay", "Quit");
                 
                 drawStars(g2, level+1, 90, 190, 100, 100);
                 g2.setFont(f);
@@ -477,6 +488,7 @@ public class MainGame extends JFrame implements ActionListener{
 
         // if red is in winning position
         if(redWon()) {
+            calculateStars();
             gamestate = GS.WIN;
         }
     }
@@ -503,17 +515,11 @@ public class MainGame extends JFrame implements ActionListener{
                 min = 0;
                 createBoard();
             }
-            
-            // if they hit back to game while pasued --> continue
+
             int x = mx1-30;
             int y = my1-30;
-            if(gamestate == GS.PAUSED) {
-                if(large.contains(x, y)) gamestate = GS.PLAYING;
-                if(medium.contains(x, y)) gamestate = GS.LEVELS;
-                if(quit.contains(x, y)) System.exit(1);
-            }
             
-
+            // if they hit back to game while pasued --> continue
             if(gamestate == GS.LEVELS) {
                 for(int i = 0; i < levels.length; i++) {
                     Button b = levels[i];
@@ -524,11 +530,28 @@ public class MainGame extends JFrame implements ActionListener{
                     }
                 }
             }
+            if(gamestate == GS.PAUSED) {
+                if(large.contains(x, y)) gamestate = GS.PLAYING;
+                if(medium.contains(x, y)) gamestate = GS.LEVELS;
+                if(quit.contains(x, y)) System.exit(1);
+            }
+            
 
             if(gamestate == GS.WIN) {
-                if(large.contains(x, y)) gamestate = GS.LEVELS;
+                DP.repaint();
+                if(large.contains(x, y)) {
+                    level++;
+                    moves = 0;
+                    min = 0;
+                    sec = 0;
+                    createBoard();
+                    gamestate = GS.PLAYING;
+                }
                 if(medium.contains(x, y)) {
                     createBoard();
+                    moves = 0;
+                    min = 0;
+                    sec = 0;
                     gamestate = GS.PLAYING;
                 }
                 if(quit.contains(x, y)) System.exit(1);
@@ -560,6 +583,8 @@ public class MainGame extends JFrame implements ActionListener{
             int dir = 0; // direction it goes, forward or back
             int selectedCar = board[ix][iy]; // which number is selected for the car
             int[] line = findLine(); // find the line the car is on
+
+            if(ix != ix2 && vert || iy != iy2 && !vert) moves++;
 
             // give the direction
             if(mx1-mx2 > 0 && !vert || my1-my2 > 0 && vert) dir = -1;
