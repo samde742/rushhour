@@ -63,8 +63,8 @@ public class MainGame extends JFrame implements ActionListener{
     int level = 5; // level starting at 0
     final static int boardOffset = 165;
     boolean vert = false;
-    int ix, iy; // selected car
-    Button large, medium, quit;
+    int ix, iy, ix2, iy2; // selected car
+    Button large, medium, quit, boardBackground;
     Button[] levels = new Button[6];
     final static Color[] carColors = {Color.RED, Color.BLUE, Color.PINK, Color.ORANGE, Color.GREEN, Color.CYAN, Color.MAGENTA, Color.BLACK};
     int[] minMoves = {4, 8, 11, 14, 20, 29};
@@ -83,6 +83,7 @@ public class MainGame extends JFrame implements ActionListener{
         large = new Button(80, 490, 340, 60, 20, 20);
         medium = new Button(80, 580, 180, 60, 20, 20);
         quit = new Button(280, 580, 140, 60, 20, 20);
+        boardBackground = new Button(0, boardOffset, 500, 500);
 
         int diff = 1; 
         for(int i = 0; i < 6; i++) {
@@ -375,7 +376,7 @@ public class MainGame extends JFrame implements ActionListener{
 
                 // BOARD
                 g2.setColor(yellow);
-                g2.fillRect(0, boardOffset, 500, 500);
+                g2.fillRect(boardBackground.x, boardBackground.y, boardBackground.w, boardBackground.h);
                 g2.setStroke(new BasicStroke(5));
                 g2.setColor(darkYellow);
 
@@ -497,6 +498,72 @@ public class MainGame extends JFrame implements ActionListener{
         }
     }
 
+    int getDirection() {
+        int dir = 0;
+        if(mx1-mx2 > 0 && !vert || my1-my2 > 0 && vert) dir = -1;
+        else dir = 1;
+        return dir;
+    }
+
+    void moveCar(int dir) {
+
+        int selectedCar = board[ix][iy]; // which number is selected for the car
+        int[] line = findLine(); // find the line the car is on
+        ix2 = (my2-boardOffset-30)/CELLW;
+        iy2 = mx2/(CELLH);
+        boolean moved = false;
+
+        for(int i = 0; i < line.length; i++) {
+
+            // make it loop forwards or backwards based on which direction --> must meet head first
+            int temp = (dir == 1) ? Math.abs(i-5) : i;
+            // if the loop meets the car
+            
+            if(line[temp] == selectedCar) {
+            
+                // moving code
+                while(true) {
+
+                    // all break conditions
+                    if(temp+dir < 0 || temp+dir >= board.length ||  line[temp+dir] != 0 
+                        || !vert && temp+dir < iy2 && dir == -1 || !vert && temp+dir > iy2 && dir == 1 || vert && temp+dir < ix2 && dir == -1 
+                        || vert && temp+dir > ix2 && dir == 1) break;
+                    // if(checkMove(line, temp, dir, selectedCar)) break;
+                    if(!moved) moved = true;
+
+                    // move the car one in the direction
+                    line[temp+dir] = line[temp];
+                    //make previous location empty
+                    line[temp] = 0;
+                    // moves car index
+                    temp+=dir;
+                }
+            }
+            // update array only if vertical(doesnt take an actual array)
+            for(int j = 0; vert && j < board.length; j++) {
+                board[j][iy] = line[j];
+            }
+        }
+        if(moved) moves++;
+    }
+
+    boolean checkMove(int[] line, int temp, int dir, int car) {
+        boolean b = false;
+
+        // if the temp index moves out of the board
+        if(temp+dir < 0 || temp+dir >= board.length) b = true;
+
+        // if the next move is occupied by any car
+        if(line[temp+dir] != 0) b = true;
+
+        // if the next index is past where their move went
+        if(!vert && temp+dir < iy2 && dir == -1 || !vert && temp+dir > iy2 && dir == 1) b = true;
+        
+        
+
+        return b;
+    }
+
     class ML implements MouseListener {
 
         @Override
@@ -578,65 +645,21 @@ public class MainGame extends JFrame implements ActionListener{
         public void mouseReleased(MouseEvent e) {
             
             // get all coordinates --> which cell based on whre they let the mouse go
-            if(board[ix][iy] ==0 || !(mx1 > 0 && mx1 < SCRW && my1 > boardOffset && my1 < SCRW+boardOffset) 
-                || gamestate != GS.PLAYING) return;
+            if(board[ix][iy] ==0 || !(boardBackground.contains(mx1,my1)) 
+            || gamestate != GS.PLAYING) return;
             mx2 = e.getX(); my2 = e.getY();
-            int ix2 = (my2-boardOffset-30)/CELLW;
-            int iy2 = mx2/(CELLH);
-            boolean moved = false;
 
-            // if they did not select a car
             // check if vertical or not
             checkAdj(ix, iy);
-            
-            int dir = 0; // direction it goes, forward or back
-            int selectedCar = board[ix][iy]; // which number is selected for the car
-            int[] line = findLine(); // find the line the car is on
 
-
-            // give the direction
-            if(mx1-mx2 > 0 && !vert || my1-my2 > 0 && vert) dir = -1;
-            else dir = 1;
-
-            // loop through the line with the car
-            for(int i = 0; i < line.length; i++) {
-
-                // make it loop forwards or backwards based on which direction --> must meet head first
-                int temp = (dir == 1) ? Math.abs(i-5) : i;
-                // if the loop meets the car
-                
-                if(line[temp] == selectedCar) {
-                
-                    // moving code
-                    while(true) {
-
-                        // all break conditions
-                        if(temp+dir < 0 || temp+dir >= board.length || line[temp+dir] == selectedCar || line[temp+dir] != 0 
-                            || !vert && temp+dir < iy2 && dir == -1 || !vert && temp+dir > iy2 && dir == 1 || vert && temp+dir < ix2 && dir == -1 
-                            || vert && temp+dir > ix2 && dir == 1) break;
-                        if(!moved) moved = true;
-
-                        // move the car one in the direction
-                        line[temp+dir] = line[temp];
-                        //make previous location empty
-                        line[temp] = 0;
-                        // moves car index
-                        temp+=dir;
-                    }
-                }
-                // update array only if vertical(doesnt take an actual array)
-                for(int j = 0; vert && j < board.length; j++) {
-                    board[j][iy] = line[j];
-                }
-            }
-            if(moved) moves++;
+            // move the car
+            moveCar(getDirection());
         }
 
         @Override
         public void mouseEntered(MouseEvent e) {}
         public void mouseExited(MouseEvent e) {}
         public void mouseClicked(MouseEvent e) {}
-
     }
 
 
