@@ -20,10 +20,9 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.image.BufferedImage;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.util.Arrays;
+import java.util.Scanner;
 
 public class MainGame extends JFrame implements ActionListener{
 
@@ -88,10 +87,8 @@ public class MainGame extends JFrame implements ActionListener{
         int diff = 1; 
         for(int i = 0; i < 6; i++) {
             if(i%2 ==0 && i!=0) diff++;
-            System.out.print(i);
             levels[i] = new Button(((i%2 != 0) ? 270 : 40), 200*diff, 190,150,20,20);
         } 
-
         this.add(DP);
         this.pack();
         this.setVisible(true);
@@ -123,26 +120,31 @@ public class MainGame extends JFrame implements ActionListener{
      * creates board from txt file full of maps
      */
     void createBoard() {
+        Scanner sc;
+        try {
+            sc = new Scanner(new File("maps.txt"));
+            int map = 0;
+            int lineNumber = 0;
+            while(sc.hasNextLine()) {
+                String s = sc.nextLine();
 
-        // loop through lines in file
-        for(int i = 0; i < board.length; i++) {
-            try {
-                // if there are more lines than the level times board length --> ensure that level exists (eg level 4, lines must be greater than 24)
-                if(Files.lines(Paths.get("maps.txt")).count() > level*board.length) {
-                    
-                    // get line from file(piece of board array)
-                    String line = Files.readAllLines(Paths.get("maps.txt")).get(level*board.length+i);
-                    
-                    // change from chars to ints
-                    int[] arr = toIntArray(line);
-
-                    // add to array
-                    board[i] = arr;
+                if(s.charAt(0) == '#'){
+                    map++;
+                    continue;
                 }
-            } catch (IOException e) {
-                System.err.println("IO EXCEPTION");
+                
+                if(map == level) {
+                    int[] arr = toIntArray(s);
+                    board[lineNumber] = arr;
+                    lineNumber++;
+                }
+                if(map > level) break;
             }
+        } catch (FileNotFoundException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
         }
+
         
     }
 
@@ -502,7 +504,6 @@ public class MainGame extends JFrame implements ActionListener{
 
             //get mouse coords
             mx1 = e.getX(); my1 = e.getY();
-            System.out.printf("%d %d", mx1, my1);
             //CREATE BUTTON CLASS FOR CLICKING
 
             // if they hit the pause button
@@ -552,7 +553,6 @@ public class MainGame extends JFrame implements ActionListener{
                     gamestate = GS.PLAYING;
                 }
                 else {
-                    System.out.println("HELLO");
                     gamestate = GS.LEVELS;
                 }
                 if(medium.contains(x, y)) {
@@ -583,6 +583,7 @@ public class MainGame extends JFrame implements ActionListener{
             mx2 = e.getX(); my2 = e.getY();
             int ix2 = (my2-boardOffset-30)/CELLW;
             int iy2 = mx2/(CELLH);
+            boolean moved = false;
 
             // if they did not select a car
             // check if vertical or not
@@ -592,8 +593,7 @@ public class MainGame extends JFrame implements ActionListener{
             int selectedCar = board[ix][iy]; // which number is selected for the car
             int[] line = findLine(); // find the line the car is on
 
-            if( ix2 < board.length && ix2 >= 0 && board[ix][iy] != board[ix2][iy] && vert || iy2 < board.length && iy2 >= 0 && board[ix][iy] != board[ix][iy2] && !vert) moves++;
-            else return;
+
             // give the direction
             if(mx1-mx2 > 0 && !vert || my1-my2 > 0 && vert) dir = -1;
             else dir = 1;
@@ -614,9 +614,9 @@ public class MainGame extends JFrame implements ActionListener{
                         if(temp+dir < 0 || temp+dir >= board.length || line[temp+dir] == selectedCar || line[temp+dir] != 0 
                             || !vert && temp+dir < iy2 && dir == -1 || !vert && temp+dir > iy2 && dir == 1 || vert && temp+dir < ix2 && dir == -1 
                             || vert && temp+dir > ix2 && dir == 1) break;
+                        if(!moved) moved = true;
 
                         // move the car one in the direction
-                        
                         line[temp+dir] = line[temp];
                         //make previous location empty
                         line[temp] = 0;
@@ -629,6 +629,7 @@ public class MainGame extends JFrame implements ActionListener{
                     board[j][iy] = line[j];
                 }
             }
+            if(moved) moves++;
         }
 
         @Override
