@@ -525,11 +525,13 @@ public class MainGame extends JFrame implements ActionListener{
                 while(true) {
 
                     // all break conditions
-                    if(temp+dir < 0 || temp+dir >= board.length ||  line[temp+dir] != 0 
-                        || !vert && temp+dir < iy2 && dir == -1 || !vert && temp+dir > iy2 && dir == 1 || vert && temp+dir < ix2 && dir == -1 
-                        || vert && temp+dir > ix2 && dir == 1) break;
-                    // if(checkMove(line, temp, dir, selectedCar)) break;
-                    if(!moved) moved = true;
+                    if(checkMove(line, temp, dir, selectedCar)) break;
+
+                    // show it was a valid move
+                    if(!moved) {
+                        moved = true;
+                        moves++;
+                    }
 
                     // move the car one in the direction
                     line[temp+dir] = line[temp];
@@ -544,24 +546,20 @@ public class MainGame extends JFrame implements ActionListener{
                 board[j][iy] = line[j];
             }
         }
-        if(moved) moves++;
     }
 
     boolean checkMove(int[] line, int temp, int dir, int car) {
-        boolean b = false;
-
         // if the temp index moves out of the board
-        if(temp+dir < 0 || temp+dir >= board.length) b = true;
+        if(temp+dir < 0 || temp+dir >= board.length) return true;
 
         // if the next move is occupied by any car
-        if(line[temp+dir] != 0) b = true;
+        if(line[temp+dir] != 0) return true;
 
-        // if the next index is past where their move went
-        if(!vert && temp+dir < iy2 && dir == -1 || !vert && temp+dir > iy2 && dir == 1) b = true;
-        
-        
+        // if the next index is past where their move went (vertical and horizonatal)
+        if(!vert && temp+dir < iy2 && dir == -1 || !vert && temp+dir > iy2 && dir == 1) return true;
+        if(vert && temp+dir < ix2 && dir == -1 || vert && temp+dir > ix2 && dir == 1) return true;
 
-        return b;
+        return false;
     }
 
     class ML implements MouseListener {
