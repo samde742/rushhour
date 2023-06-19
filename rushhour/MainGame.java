@@ -22,6 +22,7 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.Scanner;
 
 public class MainGame extends JFrame implements ActionListener{
@@ -30,6 +31,7 @@ public class MainGame extends JFrame implements ActionListener{
         new MainGame();
     }
 
+    //gamestates, used in if statements thoughout program
     enum GS {
         PLAYING,
         PAUSED,
@@ -37,11 +39,14 @@ public class MainGame extends JFrame implements ActionListener{
         WIN
     }
 
+    //global variables
     final static int SCRW = 500, SCRH = 800;
     final static int CELLW = SCRW/6, CELLH = SCRW/6;
     final static int maxLevels = 6;
+    //fonts
     Font f = new Font("Monospaced", Font.BOLD, 30);
     Font big = new Font("Monospaced", Font.BOLD, 50);
+    //colors
     Color blue = new Color(167, 199, 231);
     Color yellow = new Color(248, 241, 174);
     Color darkBlue = new Color(61, 66, 107);
@@ -49,25 +54,30 @@ public class MainGame extends JFrame implements ActionListener{
     Color darkYellow = new Color(201, 183, 81);
     Color darkPink = new Color(209, 148, 192);
     DrawingPanel DP = new DrawingPanel();
-    Timer t = new Timer(1, this);
-    Timer counter = new Timer(1000, new Counter());
+    //timers and time related
+    Timer t = new Timer(1, this); //used for updating paintcomponent and checking win
+    Timer counter = new Timer(1000, new Counter()); //used for counting the time passing in each level
     int sec = 0;
     int min = 0;
-    int moves = 0;
+    int moves = 0; //this will be used for scoring (decides how many stars user gets for each level)
     MouseListener ML = new ML();
-    Image pauseButton, restartButton, logo, eStar, star;
-    int mx1,my1, mx2, my2;
-    GS gamestate = GS.LEVELS; ///////////////////////////////////////////////////////////////////////////////////////////////
-    int[][] board = new int[6][6];
-    boolean[][] levelStars = new boolean[6][3];
+    Image pauseButton, restartButton, logo, eStar, star; //Images
+    //ints used to store the location of the mouse when it is first clicked(mx1, my1), and then where it is let go(mx2, my2)
+    int mx1, my1, mx2, my2;
+    GS gamestate = GS.LEVELS; //setting the starting screen
+    int[][] board = new int[6][6]; //creates board CANNOT BE CHANGED!!
+    boolean[][] levelStars = new boolean[6][3]; //holds true and false for each level (true meaning they earned a star, false meaning empty star)
+    boolean[] currentStars = new boolean[3]; //stars earned on the current level (used to display what they got on the level so that they can retry and see how they did)
     int level = 5; // level starting at 0
-    final static int boardOffset = 165;
-    boolean vert = false;
-    int ix, iy, ix2, iy2; // selected car
-    Button large, medium, quit, boardBackground;
-    Button[] levels = new Button[6];
+    final static int boardOffset = 165; //how far down the board is from top of screen
+    boolean vert = false; //if the car being worked on is vertical or horizontal (true = vertical, false = horizontal)
+    int ix, iy, ix2, iy2; //selected car (finds the cell when you first click, and cell when you let go)
+    Button large, medium, quit, boardBackground; //types of buttons
+    Button[] levels = new Button[6]; //for the level buttons on the levels/home/title screen
+
+    //the color of each car number from 1 - 9
     final static Color[] carColors = {Color.RED, Color.BLUE, Color.PINK, Color.ORANGE, Color.GREEN, Color.CYAN, Color.MAGENTA, Color.BLACK};
-    int[] minMoves = {4, 8, 11, 14, 20, 29};
+    int[] minMoves = {4, 8, 11, 14, 20, 29}; // the minimum moves for each level, index corrosponding to level
 
     MainGame() {
         this.setDefaultCloseOperation(EXIT_ON_CLOSE);
@@ -76,7 +86,7 @@ public class MainGame extends JFrame implements ActionListener{
         this.addMouseListener(ML);
 
         pauseButton = loadImage("pause.png").getScaledInstance(100, 100, Image.SCALE_DEFAULT);
-        restartButton = loadImage("restart.png").getScaledInstance(65, 65, Image.SCALE_DEFAULT);
+        restartButton = loadImage("replay.png").getScaledInstance(110, 110, Image.SCALE_DEFAULT);
         logo = loadImage("RushHourLogo.png").getScaledInstance(400, 180, Image.SCALE_DEFAULT);
         
 
@@ -123,27 +133,41 @@ public class MainGame extends JFrame implements ActionListener{
     void createBoard() {
         Scanner sc;
         try {
+            // scan the maps file
             sc = new Scanner(new File("maps.txt"));
+
+            // needed counting variables
             int map = 0;
             int lineNumber = 0;
+
+            
             while(sc.hasNextLine()) {
+                // get the line
                 String s = sc.nextLine();
 
+                // if it is #, the next 6 are a new map
                 if(s.charAt(0) == '#'){
+                    // next map
                     map++;
                     continue;
                 }
                 
+                // if the map and level are the same, create the board
                 if(map == level) {
+
+                    // change to ints
                     int[] arr = toIntArray(s);
+
+                    // add to board
                     board[lineNumber] = arr;
+
+                    // go to next line
                     lineNumber++;
                 }
                 if(map > level) break;
             }
         } catch (FileNotFoundException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
+            System.err.println("CANT FIND FILE");
         }
 
         
@@ -250,6 +274,7 @@ public class MainGame extends JFrame implements ActionListener{
         Button b1 = levels[l-1];
         Button b2 = levels[l];
         
+        // pink boxes
         g2.setColor(pink);
         g2.fillRoundRect(b1.x, b1.y, b1.w, b1.h, b1.aW, b1.aH);
         g2.fillRoundRect(b2.x, b2.y, b2.w, b2.h, b2.aW, b2.aH);
@@ -262,9 +287,9 @@ public class MainGame extends JFrame implements ActionListener{
         // words, stars
         g2.setColor(blue);
         g2.drawString("Level " + l, 70, y+135);
-        drawStars(g2, l, 50, y, 50,50);
+        drawStars(g2, l, 50, y, 50,50, levelStars[l-1]);
         l++;
-        drawStars(g2, l, 280, y, 50, 50);
+        drawStars(g2, l, 280, y, 50, 50, levelStars[l-1]);
         g2.drawString("Level " + l, 300, y+135);
     }
 
@@ -275,10 +300,7 @@ public class MainGame extends JFrame implements ActionListener{
      * @param x starting x coord for the stars
      * @param y the starting y coord for the stars
      */
-    void drawStars(Graphics2D g2, int lvl, int x, int y, int w, int h) {
-
-        // get stars for level
-        boolean[] lvlStars = levelStars[lvl-1];
+    void drawStars(Graphics2D g2, int lvl, int x, int y, int w, int h, boolean[] strs) {
 
         // size stars
         eStar = loadImage("emptyStar.png").getScaledInstance(w, h, Image.SCALE_DEFAULT);
@@ -286,7 +308,7 @@ public class MainGame extends JFrame implements ActionListener{
 
         // draw each star
         for(int i = 0; i < 3; i++) {
-            g2.drawImage(((lvlStars[i]) ? star : eStar), x+(i*w+10), y+ ((i == 1) ? 20 : 35), null);
+            g2.drawImage(((strs[i]) ? star : eStar), x+(i*w+10), y+ ((i == 1) ? 20 : 35), null);
         }
     } 
 
@@ -334,8 +356,15 @@ public class MainGame extends JFrame implements ActionListener{
         if(moves >= minMoves[level]+6 && moves < minMoves[level] + 9) stars = 1;
 
         for(int i = 0; i < stars; i ++) {
-            levelStars[level][i] = true;
+            currentStars[i] = true;
         }
+        System.out.println(Arrays.toString(currentStars));
+        int lastStars = 0;
+
+        for(int i = 0; i < 3; i++) {
+            if(levelStars[level][i]) lastStars++; 
+        }
+        if(lastStars < stars) levelStars[level] = currentStars;
     }
 
     class DrawingPanel extends JPanel {
@@ -440,7 +469,7 @@ public class MainGame extends JFrame implements ActionListener{
 
                 // pause, restart
                 g2.drawImage(pauseButton, 50, 680, null);
-                g2.drawImage(restartButton, 350, 695, null);
+                g2.drawImage(restartButton, 340, 680, null);
             }
             if(gamestate == GS.PAUSED){
                 drawPopup(g2, "PAUSED", "Back To Game", "Levels", "Quit");
@@ -455,26 +484,35 @@ public class MainGame extends JFrame implements ActionListener{
 
             if(gamestate == GS.WIN){
                 String lrgBtn;
+
+                // create message, if its the last level there is no next level
                 if(level < 5) lrgBtn = "Play Level " + (level+2);
                 else lrgBtn = "Go To Levels";
+
+                //draw
                 drawPopup(g2, "Level " + (level+1), lrgBtn, "Replay", "Quit");
                 
-                drawStars(g2, level+1, 90, 200, 100, 100);
+                // add stars
+                drawStars(g2, level+1, 90, 200, 100, 100, currentStars);
                 g2.setFont(f);
                 
+                // moves and time
                 g2.drawString("Moves: " + moves, 175, 380);
                 g2.drawString("Time: " + min + ":" + sec, 175, 450);
             }
             
              if(gamestate == GS.LEVELS){
                 
+                // Rush Hour logo
                 g2.drawImage(logo, 58, 0, null);
 
+                // level section
                 g2.setColor(darkBlue);
                 g2.drawString("Easy", 40, 190);
                 g2.drawString("Medium", 40, 390);
                 g2.drawString("Hard", 40, 590);
-
+                
+                // draw box groups
                 drawBoxes(g2, 200, 1);
                 drawBoxes(g2, 400, 3);
                 drawBoxes(g2, 600, 5);
@@ -491,13 +529,15 @@ public class MainGame extends JFrame implements ActionListener{
             gamestate = GS.WIN;
         }
     }
-
+    
     /**
-     * get the direction the car moves
-     * @return 1 or -1, whichever way it must go
+     * get direction the car will move
+     * @return return the direction 1 = down or right, -1 = up or left
      */
     int getDirection() {
         int dir = 0;
+
+        // find if it goes left right, up down
         if(mx1-mx2 > 0 && !vert || my1-my2 > 0 && vert) dir = -1;
         else dir = 1;
         return dir;
@@ -505,7 +545,7 @@ public class MainGame extends JFrame implements ActionListener{
 
     /**
      * move the car
-     * @param dir the direction in which the car moves
+     * @param dir the direction of the car
      */
     void moveCar(int dir) {
 
@@ -551,12 +591,11 @@ public class MainGame extends JFrame implements ActionListener{
     }
 
     /**
-     * check if the move is valid
-     * @param line the line in which we are moving on
-     * @param temp the index of the new move
-     * @param dir the direction the move goes
-     * @param car the car selected
-     * @return boolean weather the move is valid or not, true = not valid
+     * check whether the move is valid
+     * @param line the line the car will move on
+     * @param temp the index 
+     * @param dir direction
+     * @param car selected car
      */
     boolean checkMove(int[] line, int temp, int dir, int car) {
         // if the temp index moves out of the board
@@ -624,6 +663,7 @@ public class MainGame extends JFrame implements ActionListener{
                     moves = 0;
                     min = 0;
                     sec = 0;
+                    currentStars = new boolean[3];
                     createBoard();
                     gamestate = GS.PLAYING;
                 }
@@ -635,6 +675,7 @@ public class MainGame extends JFrame implements ActionListener{
                     moves = 0;
                     min = 0;
                     sec = 0;
+                    currentStars = new boolean[3];
                     gamestate = GS.PLAYING;
                 }
                 if(quit.contains(x, y)) System.exit(1);
