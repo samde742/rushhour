@@ -492,6 +492,10 @@ public class MainGame extends JFrame implements ActionListener{
         }
     }
 
+    /**
+     * get the direction the car moves
+     * @return 1 or -1, whichever way it must go
+     */
     int getDirection() {
         int dir = 0;
         if(mx1-mx2 > 0 && !vert || my1-my2 > 0 && vert) dir = -1;
@@ -499,6 +503,10 @@ public class MainGame extends JFrame implements ActionListener{
         return dir;
     }
 
+    /**
+     * move the car
+     * @param dir the direction in which the car moves
+     */
     void moveCar(int dir) {
 
         int selectedCar = board[ix][iy]; // which number is selected for the car
@@ -542,6 +550,14 @@ public class MainGame extends JFrame implements ActionListener{
         }
     }
 
+    /**
+     * check if the move is valid
+     * @param line the line in which we are moving on
+     * @param temp the index of the new move
+     * @param dir the direction the move goes
+     * @param car the car selected
+     * @return boolean weather the move is valid or not, true = not valid
+     */
     boolean checkMove(int[] line, int temp, int dir, int car) {
         // if the temp index moves out of the board
         if(temp+dir < 0 || temp+dir >= board.length) return true;
