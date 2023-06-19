@@ -485,12 +485,6 @@ public class MainGame extends JFrame implements ActionListener{
     @Override
     public void actionPerformed(ActionEvent e) {
         DP.repaint();
-
-        // if they are paused dont continue
-        if(gamestate == GS.PAUSED) {
-            return;
-        }
-
         // if red is in winning position
         if(redWon() && gamestate == GS.PLAYING) {
             calculateStars();
@@ -643,7 +637,7 @@ public class MainGame extends JFrame implements ActionListener{
         public void mouseReleased(MouseEvent e) {
             
             // get all coordinates --> which cell based on whre they let the mouse go
-            if(board[ix][iy] ==0 || !(boardBackground.contains(mx1,my1)) 
+            if(board[ix][iy] == 0 || !(boardBackground.contains(mx1,my1)) 
             || gamestate != GS.PLAYING) return;
             mx2 = e.getX(); my2 = e.getY();
 
