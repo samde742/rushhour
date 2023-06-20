@@ -85,26 +85,29 @@ public class MainGame extends JFrame implements ActionListener{
         this.setResizable(false);
         this.addMouseListener(ML);
 
+        //loading images
         pauseButton = loadImage("pause.png").getScaledInstance(100, 100, Image.SCALE_DEFAULT);
         restartButton = loadImage("replay.png").getScaledInstance(110, 110, Image.SCALE_DEFAULT);
         logo = loadImage("RushHourLogo.png").getScaledInstance(400, 180, Image.SCALE_DEFAULT);
         
-
+        //creating button objects
         large = new Button(80, 490, 340, 60, 20, 20);
         medium = new Button(80, 580, 180, 60, 20, 20);
         quit = new Button(280, 580, 140, 60, 20, 20);
         boardBackground = new Button(0, boardOffset, 500, 500);
 
-        int diff = 1; 
+        //temp variable to help change the y value of the level buttons in the level screen. It will times the y value to place the buttons in the right row
+        int row = 1; 
+        //for loop is referring i to the level number
         for(int i = 0; i < 6; i++) {
-            if(i%2 ==0 && i!=0) diff++;
-            levels[i] = new Button(((i%2 != 0) ? 270 : 40), 200*diff, 190,150,20,20);
+            if(i%2 ==0 && i!=0) row++; //the levels draw two in each row. Therefore, every two levels needs to be on the next line, row is increased
+            levels[i] = new Button(((i%2 != 0) ? 270 : 40), 200*row, 190,150,20,20); //creating identical buttons for each level in rows
         } 
         this.add(DP);
         this.pack();
         this.setVisible(true);
         this.setLocationRelativeTo(null);
-        createBoard();
+        createBoardArray(); //method to read board from the file
         t.start();
         counter.start();
     }
@@ -130,7 +133,7 @@ public class MainGame extends JFrame implements ActionListener{
     /**
      * creates board from txt file full of maps
      */
-    void createBoard() {
+    void createBoardArray() {
         Scanner sc;
         try {
             // scan the maps file
@@ -270,7 +273,7 @@ public class MainGame extends JFrame implements ActionListener{
      */
     void drawBoxes(Graphics2D g2, int y, int l){
 
-        // add to level buttons
+        // get buttons
         Button b1 = levels[l-1];
         Button b2 = levels[l];
         
@@ -302,7 +305,7 @@ public class MainGame extends JFrame implements ActionListener{
      */
     void drawStars(Graphics2D g2, int lvl, int x, int y, int w, int h, boolean[] strs) {
 
-        // size stars
+        // loading star images and size
         eStar = loadImage("emptyStar.png").getScaledInstance(w, h, Image.SCALE_DEFAULT);
         star = loadImage("star.png").getScaledInstance(w, h, Image.SCALE_DEFAULT);
 
@@ -358,7 +361,6 @@ public class MainGame extends JFrame implements ActionListener{
         for(int i = 0; i < stars; i ++) {
             currentStars[i] = true;
         }
-        System.out.println(Arrays.toString(currentStars));
         int lastStars = 0;
 
         for(int i = 0; i < 3; i++) {
@@ -629,7 +631,7 @@ public class MainGame extends JFrame implements ActionListener{
                 moves = 0;
                 sec = 0;
                 min = 0;
-                createBoard();
+                createBoardArray();
             }
 
             int x = mx1-30;
@@ -643,7 +645,7 @@ public class MainGame extends JFrame implements ActionListener{
                         level = i;
                         moves = 0;
                         sec = 0; min = 0;
-                        createBoard();
+                        createBoardArray();
                         gamestate = GS.PLAYING;
                     }
                 }
@@ -664,14 +666,14 @@ public class MainGame extends JFrame implements ActionListener{
                     min = 0;
                     sec = 0;
                     currentStars = new boolean[3];
-                    createBoard();
+                    createBoardArray();
                     gamestate = GS.PLAYING;
                 }
                 else {
                     gamestate = GS.LEVELS;
                 }
                 if(medium.contains(x, y)) {
-                    createBoard();
+                    createBoardArray();
                     moves = 0;
                     min = 0;
                     sec = 0;
