@@ -22,8 +22,8 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.Scanner;
+import javax.swing.JOptionPane;
 
 public class MainGame extends JFrame implements ActionListener{
 
@@ -36,7 +36,8 @@ public class MainGame extends JFrame implements ActionListener{
         PLAYING,
         PAUSED,
         LEVELS,
-        WIN
+        WIN,
+        CREDITS
     }
 
     //global variables
@@ -57,8 +58,9 @@ public class MainGame extends JFrame implements ActionListener{
     //timers and time related
     Timer t = new Timer(1, this); //used for updating paintcomponent and checking win
     Timer counter = new Timer(1000, new Counter()); //used for counting the time passing in each level
-    int sec = 0;
-    int min = 0;
+    int sec = 0, min = 0;
+    int credTimer = 0;
+    int credY = 0;
     int moves = 0; //this will be used for scoring (decides how many stars user gets for each level)
     MouseListener ML = new ML();
     Image pauseButton, restartButton, logo, eStar, star; //Images
@@ -72,7 +74,7 @@ public class MainGame extends JFrame implements ActionListener{
     final static int boardOffset = 165; //how far down the board is from top of screen
     boolean vert = false; //if the car being worked on is vertical or horizontal (true = vertical, false = horizontal)
     int ix, iy, ix2, iy2; //selected car (finds the cell when you first click, and cell when you let go)
-    Button large, medium, quit, boardBackground; //types of buttons
+    Button large, medium, quit, credits, boardBackground; //types of buttons
     Button[] levels = new Button[6]; //for the level buttons on the levels/home/title screen
 
     //the color of each car number from 1 - 9
@@ -95,6 +97,7 @@ public class MainGame extends JFrame implements ActionListener{
         medium = new Button(80, 580, 180, 60, 20, 20);
         quit = new Button(280, 580, 140, 60, 20, 20);
         boardBackground = new Button(0, boardOffset, 500, 500);
+        credits = new Button(375, 225, 50, 50);
 
         //temp variable to help change the y value of the level buttons in the level screen. It will times the y value to place the buttons in the right row
         int row = 1; 
@@ -110,6 +113,10 @@ public class MainGame extends JFrame implements ActionListener{
         createBoardArray(); //method to read board from the file
         t.start();
         counter.start();
+        JOptionPane.showMessageDialog (null, "GOAL: \n    - Get the red car to the very left of the board\n    - Exit is bolded\n" +
+                                                            "RULES: \n    - Cars must move parallel to where they are facing\n    - Cars may only move until they hit an object" + 
+                                                            "\nCONTROLS: \n    - Click and hold car -> drag to desired location, Release"+
+                                                            "\nUI: \n    - Pausing -> You are able to select your level, quit, or continue\n    - Pausing will pause all activities\n    - The restart button will restart your level", "How To Play", JOptionPane.INFORMATION_MESSAGE);
     }
 
     /**
@@ -402,11 +409,11 @@ public class MainGame extends JFrame implements ActionListener{
 			g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
             g2.setFont(f);
 
-           
-
+            
             // if they are playing or paused, draw screen
             if(gamestate == GS.PLAYING || gamestate == GS.PAUSED || gamestate == GS.WIN) { //because PAUSED and WIN are popups, they share the same background as PLAYING
                 g2.setColor(pink);
+                g2.setStroke(new BasicStroke(3));
 
                 //moves, time
                 g2.fillRoundRect(20,20,280, 110, 20, 20);
@@ -491,6 +498,9 @@ public class MainGame extends JFrame implements ActionListener{
                 // pause, restart images
                 g2.drawImage(pauseButton, 50, 680, null);
                 g2.drawImage(restartButton, 340, 680, null);
+                g2.setStroke(new BasicStroke(20));
+                g2.setColor(darkYellow);
+                g2.drawLine(SCRW, CELLW*2+boardOffset, SCRW, CELLW*3+boardOffset);
             }
             
             if(gamestate == GS.PAUSED){
@@ -498,7 +508,17 @@ public class MainGame extends JFrame implements ActionListener{
                 drawPopup(g2, "PAUSED", "Back To Game", "Levels", "Quit");
                 g2.setFont(f);
                 g2.setColor(darkBlue);
-                //Statistics                 
+
+                //credits
+                g2.setColor(blue);
+                g2.fillOval(credits.x, credits.y, credits.w, credits.h);
+                g2.setColor(darkBlue);
+                g2.drawOval(credits.x, credits.y, credits.w, credits.h);
+                g2.setColor(yellow);
+                g2.drawString("C", credits.x+15, credits.y+35);
+
+                //Statistics         
+                g2.setColor(darkBlue);        
                 g2.drawString("Level: " + (level+1), 175, 250);
                 g2.drawString("Moves: " + moves, 175, 350);
                 g2.drawString("Time: " + min + ":" + ((sec < 10) ? "0" : "") + sec, 175, 450);
@@ -539,7 +559,23 @@ public class MainGame extends JFrame implements ActionListener{
                 drawBoxes(g2, 400, 3);
                 drawBoxes(g2, 600, 5);
             }
-        }
+
+            if(gamestate == GS.CREDITS) {
+                g2.setBackground(Color.BLACK);
+                g2.setColor(yellow);
+                int change = 0;
+                g2.drawString("RUSH HOUR \nBy Sammy and Arielle", 100, credY);
+                g2.drawString("Special thanks to Mr Harwood \nfor being the best teacher central has ever seen", 100, 800credY);
+
+
+                change++;
+                if(credTimer >= 80) {
+                    gamestate = GS.PAUSED;
+                    credTimer = 0;
+                }
+            }
+            
+        } 
     }
 
     @Override
@@ -633,6 +669,7 @@ public class MainGame extends JFrame implements ActionListener{
         return false;
     }
 
+    // set all values to default for reset
     void setDefault() {
         moves = 0;
         sec = 0;
@@ -688,6 +725,7 @@ public class MainGame extends JFrame implements ActionListener{
                 if(medium.contains(x, y)) gamestate = GS.LEVELS;
                 //if they hit the quit button
                 if(quit.contains(x, y)) System.exit(1);
+                if(credits.contains(x,y)) gamestate = GS.CREDITS;
             }
             
             // if they win                
@@ -768,6 +806,7 @@ public class MainGame extends JFrame implements ActionListener{
                 min++;
                 sec = 0;
             }
+            if(gamestate == GS.CREDITS) credTimer++;
         }
 
     }
