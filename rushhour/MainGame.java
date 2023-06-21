@@ -65,7 +65,7 @@ public class MainGame extends JFrame implements ActionListener{
     //timers and time related
     Timer t = new Timer(1, this); //used for updating paintcomponent and checking win
     Timer counter = new Timer(1000, new Counter()); //used for counting the time passing in each level
-    Timer creditsTimer = new Timer(50, new CreditsTimer()); //used for moving text on the credits
+    Timer creditsTimer = new Timer(50, new Counter()); //used for moving text on the credits
 
     int sec = 0, min = 0; // for timer
     int credTimer = 0; // for length of credits
@@ -856,17 +856,6 @@ public class MainGame extends JFrame implements ActionListener{
                 min++;
                 sec = 0;
             }
-            
-        }
-
-    }
-
-
-    // timer for credits
-    class CreditsTimer implements ActionListener {
-
-        @Override
-        public void actionPerformed(ActionEvent e) {
 
             // if it is the credit screen
             if(gamestate == GS.CREDITS) {
@@ -876,6 +865,7 @@ public class MainGame extends JFrame implements ActionListener{
                 // add to value changing y value of credit words
                 credY+=1;
             }
+            
         }
 
     }
