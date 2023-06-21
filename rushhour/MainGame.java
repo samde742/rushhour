@@ -67,9 +67,9 @@ public class MainGame extends JFrame implements ActionListener{
     Timer counter = new Timer(1000, new Counter()); //used for counting the time passing in each level
     Timer creditsTimer = new Timer(50, new CreditsTimer()); //used for moving text on the credits
 
-    int sec = 0, min = 0;
-    int credTimer = 0;
-    int credY = 0;
+    int sec = 0, min = 0; // for timer
+    int credTimer = 0; // for length of credits
+    int credY = 0; // for moving credit messages
     int moves = 0; //this will be used for scoring (decides how many stars user gets for each level)
     MouseListener ML = new ML();
     Image pauseButton, restartButton, logo, eStar, star; //Images
@@ -861,12 +861,19 @@ public class MainGame extends JFrame implements ActionListener{
 
     }
 
+
+    // timer for credits
     class CreditsTimer implements ActionListener {
 
         @Override
         public void actionPerformed(ActionEvent e) {
+
+            // if it is the credit screen
             if(gamestate == GS.CREDITS) {
+                //add to timer on credits
                 credTimer++;
+
+                // add to value changing y value of credit words
                 credY+=1;
             }
         }
