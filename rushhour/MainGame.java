@@ -24,6 +24,12 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Scanner;
 
+/*
+ * Sammy and Arielle
+ * 6/21/2023
+ * rush hour copy with UI
+ */
+
 public class MainGame extends JFrame implements ActionListener{
 
     public static void main(String[] args) {
@@ -565,10 +571,13 @@ public class MainGame extends JFrame implements ActionListener{
             }
 
             if(gamestate == GS.CREDITS) {
+
+                // start timer and set color and font
                 creditsTimer.start();
-                g2.setBackground(Color.BLACK);
                 g2.setColor(yellow);
                 g2.setFont(creditFont);
+
+                // messages
                 g2.drawString("RUSH HOUR", (int) centerFont("RUSH HOUR"), 100-credY);                
                 g2.drawString("By Sammy and Arielle", (int) centerFont("By Sammy and Arielle"), 150-credY);
                 
@@ -578,12 +587,18 @@ public class MainGame extends JFrame implements ActionListener{
                 g2.drawString("Have a good retirement!", (int) centerFont("Have a good retirement!"), 950-credY);
                 g2.drawString("Thanks for the semester!", (int) centerFont("Thanks for the semester!"), 1000-credY);
 
-
+                // exit button
                 g2.setColor(Color.RED);
                 g2.fillRoundRect(exit.x, exit.y, exit.w, exit.h, exit.aW, exit.aH);
+
+                // if credits are over
                 if(credTimer >= 1000) {
+
+                    // if they are on the last level show them win screen
                     if(level ==5) gamestate = GS.WIN;
                     else gamestate = GS.PAUSED;
+
+                    // reset values
                     credTimer = 0;
                     credY = 0;
                     creditsTimer.stop();
@@ -606,6 +621,8 @@ public class MainGame extends JFrame implements ActionListener{
         // if red is in winning position
         if(redWon() && gamestate == GS.PLAYING) {
             calculateStars();
+
+            // send to credits if last is won
             if(level == 5) gamestate = GS.CREDITS;
             else gamestate = GS.WIN;
             
@@ -784,6 +801,8 @@ public class MainGame extends JFrame implements ActionListener{
 
             if(gamestate == GS.CREDITS) {
                 if(exit.contains(x, y)) {
+
+                    // if sent from last they are sent to win
                     if(level == 5) gamestate = GS.WIN;
                     else gamestate = GS.PAUSED;
                 }
