@@ -23,7 +23,6 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Scanner;
-import javax.swing.JOptionPane;
 
 public class MainGame extends JFrame implements ActionListener{
 
@@ -576,12 +575,15 @@ public class MainGame extends JFrame implements ActionListener{
                 g2.drawString("Special thanks", (int) centerFont("Special thanks"), 800-credY);
                 g2.drawString("to Mr. Harwood", (int) centerFont("to Mr. Harwood"), 850-credY);     
                 g2.drawString("The best teacher at central!", (int) centerFont("The best teacher at central!"), 900-credY);
-                g2.drawString("Good luck!!!", (int) centerFont("Good luck!!!"), 950-credY);
+                g2.drawString("Have a good retirement!", (int) centerFont("Have a good retirement!"), 950-credY);
+                g2.drawString("Thanks for the semester!", (int) centerFont("Thanks for the semester!"), 1000-credY);
+
 
                 g2.setColor(Color.RED);
                 g2.fillRoundRect(exit.x, exit.y, exit.w, exit.h, exit.aW, exit.aH);
                 if(credTimer >= 1000) {
-                    gamestate = GS.PAUSED;
+                    if(level ==5) gamestate = GS.WIN;
+                    else gamestate = GS.PAUSED;
                     credTimer = 0;
                     credY = 0;
                     creditsTimer.stop();
@@ -604,7 +606,9 @@ public class MainGame extends JFrame implements ActionListener{
         // if red is in winning position
         if(redWon() && gamestate == GS.PLAYING) {
             calculateStars();
-            gamestate = GS.WIN;
+            if(level == 5) gamestate = GS.CREDITS;
+            else gamestate = GS.WIN;
+            
         }
     }
     
@@ -779,7 +783,10 @@ public class MainGame extends JFrame implements ActionListener{
             }
 
             if(gamestate == GS.CREDITS) {
-                if(exit.contains(x, y)) gamestate = GS.PAUSED;
+                if(exit.contains(x, y)) {
+                    if(level == 5) gamestate = GS.WIN;
+                    else gamestate = GS.PAUSED;
+                }
             }
             
             // if they click within the board
