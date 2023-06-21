@@ -47,6 +47,8 @@ public class MainGame extends JFrame implements ActionListener{
     //fonts
     Font f = new Font("Monospaced", Font.BOLD, 30);
     Font big = new Font("Monospaced", Font.BOLD, 50);
+    Font creditFont = new Font("Monospaced", Font.BOLD, 25);
+
     //colors
     Color blue = new Color(167, 199, 231);
     Color yellow = new Color(248, 241, 174);
@@ -58,6 +60,8 @@ public class MainGame extends JFrame implements ActionListener{
     //timers and time related
     Timer t = new Timer(1, this); //used for updating paintcomponent and checking win
     Timer counter = new Timer(1000, new Counter()); //used for counting the time passing in each level
+    Timer creditsTimer = new Timer(50, new CreditsTimer()); //used for moving text on the credits
+
     int sec = 0, min = 0;
     int credTimer = 0;
     int credY = 0;
@@ -74,7 +78,7 @@ public class MainGame extends JFrame implements ActionListener{
     final static int boardOffset = 165; //how far down the board is from top of screen
     boolean vert = false; //if the car being worked on is vertical or horizontal (true = vertical, false = horizontal)
     int ix, iy, ix2, iy2; //selected car (finds the cell when you first click, and cell when you let go)
-    Button large, medium, quit, credits, boardBackground; //types of buttons
+    Button large, medium, quit, credits, exit, boardBackground; //types of buttons
     Button[] levels = new Button[6]; //for the level buttons on the levels/home/title screen
 
     //the color of each car number from 1 - 9
@@ -98,6 +102,7 @@ public class MainGame extends JFrame implements ActionListener{
         quit = new Button(280, 580, 140, 60, 20, 20);
         boardBackground = new Button(0, boardOffset, 500, 500);
         credits = new Button(375, 225, 50, 50);
+        exit = new Button(450, 10, 40, 40, 20, 20);
 
         //temp variable to help change the y value of the level buttons in the level screen. It will times the y value to place the buttons in the right row
         int row = 1; 
@@ -561,21 +566,36 @@ public class MainGame extends JFrame implements ActionListener{
             }
 
             if(gamestate == GS.CREDITS) {
+                creditsTimer.start();
                 g2.setBackground(Color.BLACK);
                 g2.setColor(yellow);
-                int change = 0;
-                g2.drawString("RUSH HOUR \nBy Sammy and Arielle", 100, credY);
-                g2.drawString("Special thanks to Mr Harwood \nfor being the best teacher central has ever seen", 100, 800credY);
+                g2.setFont(creditFont);
+                g2.drawString("RUSH HOUR", (int) centerFont("RUSH HOUR"), 100-credY);                
+                g2.drawString("By Sammy and Arielle", (int) centerFont("By Sammy and Arielle"), 150-credY);
+                
+                g2.drawString("Special thanks", (int) centerFont("Special thanks"), 800-credY);
+                g2.drawString("to Mr. Harwood", (int) centerFont("to Mr. Harwood"), 850-credY);     
+                g2.drawString("The best teacher at central!", (int) centerFont("The best teacher at central!"), 900-credY);
+                g2.drawString("Good luck!!!", (int) centerFont("Good luck!!!"), 950-credY);
 
-
-                change++;
-                if(credTimer >= 80) {
+                g2.setColor(Color.RED);
+                g2.fillRoundRect(exit.x, exit.y, exit.w, exit.h, exit.aW, exit.aH);
+                if(credTimer >= 1000) {
                     gamestate = GS.PAUSED;
                     credTimer = 0;
+                    credY = 0;
+                    creditsTimer.stop();
                 }
             }
             
         } 
+    }
+
+    double centerFont(String s) {
+        double xVal = 0;
+        int space = creditFont.getSize()/2 * s.length();
+        xVal = (SCRW-space)/2.0;
+        return xVal-creditFont.getSize()-s.length()/creditFont.getSize()/2;
     }
 
     @Override
@@ -757,6 +777,10 @@ public class MainGame extends JFrame implements ActionListener{
                 // quit button
                 if(quit.contains(x, y)) System.exit(1);
             }
+
+            if(gamestate == GS.CREDITS) {
+                if(exit.contains(x, y)) gamestate = GS.PAUSED;
+            }
             
             // if they click within the board
             if(mx1 > 0 && mx1 < SCRW && my1 > boardOffset && my1 < SCRW+boardOffset) {
@@ -806,7 +830,19 @@ public class MainGame extends JFrame implements ActionListener{
                 min++;
                 sec = 0;
             }
-            if(gamestate == GS.CREDITS) credTimer++;
+            
+        }
+
+    }
+
+    class CreditsTimer implements ActionListener {
+
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            if(gamestate == GS.CREDITS) {
+                credTimer++;
+                credY+=1;
+            }
         }
 
     }
